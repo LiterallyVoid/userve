@@ -13,6 +13,10 @@ typedef enum HttpStatus {
 	HTTP_INTERNAL_SERVER_ERROR = 500,
 } HttpStatus;
 
+// Returns the HTTP status code string associated with `status`, or an
+// empty string if the status code is unrecognized.
+const char *http_status_to_string(HttpStatus status);
+
 typedef struct {
 	// A file descriptor to write the response to.
 	int write_fd;
@@ -32,6 +36,10 @@ void http_response_set_status(HttpResponse *self, HttpStatus status);
 // Remove all headers from `self`.
 void http_response_clear_headers(HttpResponse *self);
 
-void http_response_add_header(HttpResponse *self, Slice header, Slice foo);
+// Store an HTTP header in `self`.
+// Not written immediately.
+Error http_response_add_header(HttpResponse *self, Slice name, Slice value);
 
-void http_response_end(HttpResponse *self);
+Error http_response_write_chunk(HttpResponse *self, Slice slice);
+Error http_response_end_with_body(HttpResponse *self, Slice slice);
+Error http_response_end(HttpResponse *self);

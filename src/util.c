@@ -9,6 +9,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <limits.h>
+#include <unistd.h>
+
 size_t next_power_of_two(size_t num) {
 	num |= num >> 1;
 	num |= num >> 2;
@@ -35,3 +38,18 @@ size_t next_power_of_two(size_t num) {
 void set_undefined(void *ptr, size_t len) {
 	memset(ptr, 0xAA, len);
 }
+
+Error write_all_to_fd(int fd, Slice slice) {
+	while (slice.len > 0) {
+		size_t attempt_write = slice.len;
+		if (attempt_write > INT_MAX) attempt_write = INT_MAX;
+
+		ssize_t amount_written = write(fd, slice.bytes, attempt_write);
+		if (amount_written < 0) return ERR_UNKNOWN;
+
+		slice = slice_remove_start(slice, amount_written);
+	}
+
+	return ERR_SUCCESS;
+}
+

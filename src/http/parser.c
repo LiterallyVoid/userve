@@ -78,6 +78,28 @@ static void trim_start(Slice *rest, uint8_t ch) {
 	}
 }
 
+// Remove exactly one space character from `rest`.
+// If `rest` does not start with a space, return false.
+static bool remove_space(Slice *rest) {
+	if (rest->len < 1) return false;
+	if (rest->bytes[0] != ' ') return false;
+
+	*rest = slice_remove_start(*rest, 1);
+
+	return true;
+}
+
+// Remove at least one space character from `rest`.
+// If `rest` does not start with a space, return false.
+static bool remove_many_spaces(Slice *rest) {
+	if (rest->len < 1) return false;
+	if (rest->bytes[0] != ' ') return false;
+
+	trim_start(rest, ' ');
+
+	return true;
+}
+
 // Remove exactly one carriage return and newline from `rest`.
 // If `rest` does not start with `\r\n`, return false.
 static bool remove_newline(Slice *rest) {
@@ -89,45 +111,85 @@ static bool remove_newline(Slice *rest) {
 	return true;
 }
 
-// Return a single field that starts from exactly `rest`, and trim spaces between the end of this field and the start of the next.
-// If the field contains any bytes that aren't allowed by `byte_is_allowed`, field parsing fails.
-//
-// If a field couldn't be parsed, this returns an empty slice and leaves `rest` unchanged. Using an empty string as a sentinel is fine (if a little ugly), because there's no way to have an empty field if it's space-delimited.
-static Slice cut_field(Slice *rest, bool (*byte_is_allowed)(uint8_t byte)) {
-	if (rest->len > 0 && rest->bytes[0] == ' ') {
-		return slice_new();
-	}
-
+// Return a single field that starts from exactly `rest`, and ends *before* the
+// first byte that `allow_byte` returns `false` for.
+static Slice cut_field(
+	Slice *rest,
+	bool (*allow_byte)(uint8_t byte)
+) {
 	size_t index = 0;
 	for (; index < rest->len; index++) {
-		if (rest->bytes[index] == ' ') {
-			break;
+		if (allow_byte(rest->bytes[index])) {
+			continue;
 		}
 
-		// Stop on encountering either `\n` and `\r\n` newlines here. Line endings
-		// should be enforced by `remove_newline`.
-		if (rest->bytes[index] == '\r' || rest->bytes[index] == '\n') {
-			break;
-		}
-
-		if (byte_is_allowed && !byte_is_allowed(rest->bytes[index])) {
-			return slice_new();
-		}
+		break;
 	}
 
 	Slice field;
-	slice_split_at_index(*rest, index, &field, rest);
+	slice_split_at_index(
+		// slice
+		*rest,
 
-	trim_start(rest, ' ');
+		// index
+		index,
+
+		// before
+		&field,
+
+		// after
+		rest
+	);
 
 	return field;
+}
+
+static bool is_token_byte(uint8_t byte) {
+	// `token`, from https://datatracker.ietf.org/doc/html/rfc9110#appendix-A-2
+	switch (byte) {
+	case '!':
+	case '#':
+	case '$':
+	case '%':
+	case '&':
+	case '\'':
+	case '*':
+	case '+':
+	case '-':
+	case '.':
+	case '^':
+	case '_':
+	case '`':
+	case '|':
+	case '~':
+		return true;
+	}
+
+	if (byte >= '0' && byte <= '9') {
+		return true;
+	}
+
+	if (
+		(byte >= 'a' && byte <= 'z') ||
+		(byte >= 'A' && byte <= 'Z')
+	) {
+		return true;
+	}
+
+	return false;
 }
 
 static bool is_uppercase_byte(uint8_t byte) {
 	return byte >= 'A' && byte <= 'Z';
 }
 
-static bool is_any_byte(uint8_t byte) {
+static bool is_target_byte(uint8_t byte) {
+	if (byte == '\r' || byte == '\n') return false;
+	if (byte == ' ' || byte == '\t') return false;
+
+	// Exclude all control characters.
+	if (byte < ' ') return false;
+
 	return true;
 }
 
@@ -143,26 +205,26 @@ static Error parse_headers(
 	request->buffer = buffer;
 	Slice bytes = buffer_slice(&buffer);
 
-	trim_start(&bytes, ' ');
-
 	// The method must be uppercase.
-	Slice method = cut_field(&bytes, is_uppercase_byte);
-	if (method.len == 0) {
-		printf("request malformed: no method\n");
-		return ERR_PARSE_FAILED;
+	Slice method = cut_field(&bytes, is_token_byte);
+	if (method.len == 0) return ERR_PARSE_FAILED;
+	if (!remove_many_spaces(&bytes)) return ERR_PARSE_FAILED;
+
+	Slice target = cut_field(&bytes, is_target_byte);
+	if (target.len == 0) return ERR_PARSE_FAILED;
+
+	// Allowing any token as a version is more lenient than spec.
+	// An empty version is allowed, and understood as an HTTP/1.0 Simple-Request.
+	Slice version = slice_new();
+	if (remove_space(&bytes)) {
+		remove_many_spaces(&bytes);
+
+		version = cut_field(&bytes, is_token_byte);
 	}
 
-	Slice path = cut_field(&bytes, NULL);
-	if (path.len == 0) {
-		printf("request malformed: no path\n");
-		return ERR_PARSE_FAILED;
-	}
-
-	Slice version = cut_field(&bytes, NULL);
-	// An empty version is allowed, and understood as an HTTP/1.0 Simple-Request for now.
-
-	// `cut_field` removes trailing whitespace; if `bytes` doesn't start with a newline, that means
-	// there are more fields than method, path, and version; and the request is malformed.
+	// `cut_field` removes trailing whitespace; if `bytes` doesn't start with a
+	// newline, that means there are more fields than method, path, and version;
+	// and the request is malformed.
 	if (!remove_newline(&bytes)) {
 		printf("request malformed: no newline\n");
 		return ERR_PARSE_FAILED;
@@ -171,7 +233,7 @@ static Error parse_headers(
 	request->buffer = buffer;
 
 	request->method = method;
-	request->path = path;
+	request->target = target;
 	request->version = version;
 
 	return ERR_SUCCESS;

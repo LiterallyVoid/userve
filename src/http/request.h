@@ -10,7 +10,7 @@ typedef struct HttpRequest {
 	Buffer buffer;
 
 	Slice method;
-	Slice path;
+	Slice target;
 	Slice version;
 } HttpRequest;
 

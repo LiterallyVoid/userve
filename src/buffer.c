@@ -24,6 +24,13 @@ Slice slice_from_cstr(const char *cstr) {
 	return slice_from_len((uint8_t*) cstr, strlen(cstr));
 }
 
+bool slice_equal(Slice a, Slice b) {
+	if (a.len != b.len) return false;
+	if (memcmp(a.bytes, b.bytes, a.len) != 0) return false;
+
+	return true;
+}
+
 Slice slice_remove_start(Slice self, size_t n) {
 	assert(n <= self.len);
 	return slice_from_len(
@@ -85,12 +92,13 @@ Error buffer_concat(Buffer *self, Slice slice) {
 	return ERR_SUCCESS;
 }
 
-int buffer_concat_printf(Buffer *self, const char *fmt, ...) {
+Error buffer_concat_printf(Buffer *self, const char *fmt, ...) {
 	Error err;
 
 	// Have a reasonable amount of space for the fast path of only calling
 	// `vsnprintf` once.
-	buffer_reserve_additional(self, 128);
+	err = buffer_reserve_additional(self, 128);
+	if (err != ERR_SUCCESS) return err;
 
 	for (int i = 0; i < 2; i++) {
 		va_list args;
@@ -114,7 +122,7 @@ int buffer_concat_printf(Buffer *self, const char *fmt, ...) {
 			// to be NUL-terminated anyway.
 			self->len += space_required;
 		
-			return space_required;
+			return ERR_SUCCESS;
 		}
 
 		// `vsnprintf` shouldn't require a different amount of bytes the second time; if this happens, something else has gone wrong.

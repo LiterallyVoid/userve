@@ -15,7 +15,26 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-static void respond_to_request(const HttpRequest *req, HttpResponse *res) {
+static Error respond_to_request(const HttpRequest *req, HttpResponse *res) {
+	Error err;
+
+	if (slice_equal(req->target, slice_from_cstr("/"))) {
+		http_response_set_status(res, HTTP_OK);
+		err = http_response_add_header(
+			res,
+			slice_from_cstr("Server"),
+			slice_from_cstr("microserve")
+		);
+		if (err != ERR_SUCCESS) return err;
+
+		http_response_end_with_body(
+			res,
+			slice_from_cstr("hey...?")
+		);
+		if (err != ERR_SUCCESS) return err;
+	}
+
+	return ERR_SUCCESS;
 }
 
 int main(int argc, char **argv) {

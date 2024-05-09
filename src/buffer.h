@@ -4,7 +4,7 @@
 
 #include <sys/types.h>
 
-/// TODO: rename this to bytes.{h,c} instead of buffer.
+/// TODO: rename this to bytes.{h,c} instead of buffer, or split out `Slice` into its own file?
 
 // An unowned array of bytes.
 typedef struct Slice {
@@ -33,6 +33,9 @@ Slice slice_from_len(uint8_t *bytes, size_t len);
 // Create a new slice from a NUL-terminated string.
 Slice slice_from_cstr(const char *cstr);
 
+// Returns true if the byte arrays `a` and `b` compare equal.
+bool slice_equal(Slice a, Slice b);
+
 // Return `slice` with the first `n` bytes removed.
 // Panics if the slice has less than `n` bytes.
 Slice slice_remove_start(Slice self, size_t n);
@@ -60,10 +63,9 @@ Error buffer_reserve_additional(Buffer *self, size_t additional);
 Error buffer_concat(Buffer *self, Slice slice);
 
 // Concatenate a `printf`-formatted string to `self`. If `printf` encounters
-// an error, this function returns ERR_UNKNOWN. Otherwise, return the number of
-// bytes written.
+// an error, this function returns ERR_UNKNOWN. Otherwise, return `ERR_SUCCESS`.
 __attribute__((__format__(__printf__, 2, 3)))
-int buffer_concat_printf(Buffer *self, const char *fmt, ...);
+Error buffer_concat_printf(Buffer *self, const char *fmt, ...);
 
 // Return a slice to the buffer's content, i.e. `self.buffer[0..self.len]`
 Slice buffer_slice(Buffer *self);

@@ -186,8 +186,8 @@ void print_http_request(FILE *fp, const HttpRequest *request) {
 	fprintf(fp, "HTTP ");
 	print_slice(fp, request->method);
 
-	fprintf(fp, " path: ");
-	print_slice(fp, request->path);
+	fprintf(fp, " target: ");
+	print_slice(fp, request->target);
 
 	fprintf(fp, " version: ");
 	print_slice(fp, request->version);
