@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
 
 		while (true) {
 			uint8_t buffer[512];
+
 			ssize_t recv_result = recv(connection.fd, &buffer, sizeof(buffer), 0);
 			if (recv_result == -1) {
 				perror("read");
