@@ -65,19 +65,41 @@ int main(int argc, char **argv) {
 	server_init(&server);
 
 	for (struct addrinfo *cursor = listen_addresses; cursor != NULL; cursor = cursor->ai_next) {
-		printf("found address:\n");
+		Error err;
 
-		printf("  http://");
-		print_address(stdout, cursor->ai_addr, cursor->ai_addrlen);
-		printf("\n");
+		// Try a handful of ports.
+		for (int i = 0; i < 5; i++) {
+			err = server_listen(&server, (ListenAddress) {
+				.socket_family = cursor->ai_family,
+				.socket_type = cursor->ai_socktype,
+				.addr = cursor->ai_addr,
+				.addr_len = cursor->ai_addrlen,
+			});
 
-		Error err = server_listen(&server, (ListenAddress) {
-			.socket_family = cursor->ai_family,
-			.socket_type = cursor->ai_socktype,
-			.addr = cursor->ai_addr,
-			.addr_len = cursor->ai_addrlen,
-		});
-		if (err != ERR_SUCCESS) {
+			if (err == ERR_SUCCESS) break;
+
+			uint16_t *port_raw;
+			if (cursor->ai_addr->sa_family == AF_INET) {
+				struct sockaddr_in *addr = (struct sockaddr_in*) cursor->ai_addr;
+				port_raw = &addr->sin_port;
+			} else if (cursor->ai_addr->sa_family == AF_INET6) {
+				struct sockaddr_in6 *addr = (struct sockaddr_in6*) cursor->ai_addr;
+				port_raw = &addr->sin6_port;
+			} else {
+				break;
+			}
+
+			uint16_t port = ntohs(*port_raw);
+			if (port == 65535) break;
+
+			*port_raw = htons(port + 1);
+		}
+
+		if (err == ERR_SUCCESS) {
+			printf(" listening at http://");
+			print_address(stdout, cursor->ai_addr, cursor->ai_addrlen);
+			printf("\n");
+		} else {
 			printf("error listening to address: %s\n", error_to_string(err));
 		}
 	}
