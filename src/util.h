@@ -10,7 +10,8 @@
 // If the next power of two is unrepresentable, this function will panic.
 size_t next_power_of_two(size_t num);
 
-// Mark `len` bytes of `ptr` as undefined by writing the sentinel bit pattern 0xAA.
+// Mark `len` bytes of `ptr` as undefined by setting each byte to 0xAA.
+// Intended to make reads of undefined values *very* loud.
 void set_undefined(void *ptr, size_t len);
 
 // Write all of `slice` to `fd`, returning an error if `write` fails.
