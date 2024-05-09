@@ -82,26 +82,26 @@ void arguments_parse(Arguments *self, int argc, char **argv) {
 		const char *parsed = NULL;
 
 		// --address [address], -a [address]
-		if (match(arg, "--address") || match(arg, "-a")) {
+		if (match(arg, "-a") || match(arg, "--address")) {
 			i++;
 			if (i >= argc) break;
 
-			self->address = arg;
+			self->address = argv[i];
 
-		// --address=[port]
+		// --address=[address]
 		} else if ((parsed = remove_prefix("--address=", arg)) != NULL) {
-			self->address = arg;
+			self->address = parsed;
 
 		// --port [port], -p [port]
-		} else if (match(arg, "--port") || match(arg, "-p")) {
+		} else if (match(arg, "-p") || match(arg, "--port")) {
 			i++;
 			if (i >= argc) break;
 
-			self->address = arg;
+			self->port = argv[i];
 
 		// --port=[port]
 		} else if ((parsed = remove_prefix("--port=", arg)) != NULL) {
-			self->port = arg;
+			self->port = parsed;
 
 		} else if (match(arg, "-t") || match(arg, "--test")) {
 			self->test = true;
