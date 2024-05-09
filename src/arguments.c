@@ -129,8 +129,6 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 
 
 		} else if (match(arg, "-h") || match(arg, "--help") || match(arg, "-?")) {
-			fprintf(stderr, "error: unknown argument '%s'\n\n", arg);
-
 			print_usage(argv[0]);
 
 			exit(0);
@@ -142,6 +140,8 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 			exit(0);
 
 		} else {
+			fprintf(stderr, "error: unknown argument '%s'\n\n", arg);
+
 			print_usage(argv[0]);
 
 			exit(1);
