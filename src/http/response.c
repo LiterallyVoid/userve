@@ -168,4 +168,6 @@ Error http_response_end_with_body(HttpResponse *self, Slice body) {
 
 	err = write_all_to_fd(self->write_fd, body);
 	if (err != ERR_SUCCESS) return err;
+
+	return ERR_SUCCESS;
 }
