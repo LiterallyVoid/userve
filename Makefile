@@ -1,4 +1,5 @@
 OBJECTS = \
+	src/arguments.o \
 	src/arraylist.o	\
 	src/buffer.o	\
 	src/error.o	\
@@ -11,7 +12,13 @@ OBJECTS = \
 	src/util.o \
 	# end
 
-CFLAGS = -pthread -ftrivial-auto-var-init=pattern -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ftrapv
+OBJECTS += \
+	# test/test.c \
+	# test/fuzz.c \
+	# end
+
+CFLAGS = -pthread -ftrivial-auto-var-init=pattern -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ftrapv \
+	-DUSERVE_VERSION=\"v0.1.0\"
 LDFLAGS = -pthread
 
 WARNINGS = -Wall -Wextra -Wmissing-prototypes -Wvla

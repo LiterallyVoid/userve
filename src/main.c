@@ -1,3 +1,4 @@
+#include "arguments.h"
 #include "http/parser.h"
 #include "http/response.h"
 #include "print.h"
@@ -44,11 +45,24 @@ static Error respond_to_request(const HttpRequest *req, HttpResponse *res) {
 }
 
 int main(int argc, char **argv) {
+	Arguments arguments;
+	arguments_parse(&arguments, argc, argv);
+
+	if (arguments.test) {
+		fprintf(stderr, "todo: tests\n");
+		return 1;
+	}
+
+	if (arguments.fuzz) {
+		fprintf(stderr, "todo: fuzzer\n");
+		return 1;
+	}
+
 	struct addrinfo *listen_addresses = NULL;
 
 	int err = getaddrinfo(
-		"localhost",
-		"3000",
+		arguments.address,
+		arguments.port,
 		&(struct addrinfo) {
 			.ai_flags = AI_ADDRCONFIG | AI_NUMERICSERV,
 			.ai_socktype = SOCK_STREAM,
