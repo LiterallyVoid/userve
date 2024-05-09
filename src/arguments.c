@@ -1,3 +1,5 @@
+// Not happy with the code here; it's in dire need for... I don't know. Something.
+
 #include "arguments.h"
 
 #include <stdio.h>
@@ -126,7 +128,6 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 
 		} else if ((parsed = remove_prefix("--fuzz=", arg)) != NULL) {
 			self->fuzz = parsed;
-
 
 		} else if (match(arg, "-h") || match(arg, "--help") || match(arg, "-?")) {
 			print_usage(argv[0]);
