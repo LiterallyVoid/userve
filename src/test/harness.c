@@ -49,7 +49,7 @@ void expect(
 
 	fprintf(
 		stderr,
-		"test %s (%s:%d) assertion failed:\t%s\n",
+		"test %s\t(%s:%d)\tassertion failed:\t%s\n",
 		ctx->current_test,
 
 		file,
