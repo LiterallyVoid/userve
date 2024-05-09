@@ -56,14 +56,11 @@ static Error open_listen_socket(
 		return ERR_UNKNOWN;
 	}
 
-	// Enable REUSEADDR.
 	int one = 1;
-	err = setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
-	if (err != 0) {
-		perror("setsockopt");
 
-		// Couldn't enable REUSEADDR. Continue anyway.
-	}
+	// Enable REUSEADDR.
+	// If it fails, it fails.
+	setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
 
 	// Bind the socket to the specified address.
 	err = bind(
