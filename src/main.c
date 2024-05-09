@@ -27,12 +27,15 @@ static Error respond_to_request(const HttpRequest *req, HttpResponse *res) {
 		);
 		if (err != ERR_SUCCESS) return err;
 
-		http_response_end_with_body(
+		err = http_response_end_with_body(
 			res,
 			slice_from_cstr("hey...?")
 		);
 		if (err != ERR_SUCCESS) return err;
 	}
+
+	err = http_response_not_found(res);
+	if (err != ERR_SUCCESS) return err;
 
 	return ERR_SUCCESS;
 }

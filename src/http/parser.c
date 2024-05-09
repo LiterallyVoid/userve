@@ -193,6 +193,10 @@ static bool is_target_byte(uint8_t byte) {
 	return true;
 }
 
+static bool is_version_byte(uint8_t byte) {
+	return is_token_byte(byte) || byte == '/' || byte == '.';
+}
+
 // Returns `0` if the parse was successful or `-1` otherwise.
 // Only takes ownership of `buffer` if the parse was successful.
 static Error parse_headers(
@@ -219,14 +223,14 @@ static Error parse_headers(
 	if (remove_space(&bytes)) {
 		remove_many_spaces(&bytes);
 
-		version = cut_field(&bytes, is_token_byte);
+		version = cut_field(&bytes, is_version_byte);
 	}
 
 	// `cut_field` removes trailing whitespace; if `bytes` doesn't start with a
 	// newline, that means there are more fields than method, path, and version;
 	// and the request is malformed.
 	if (!remove_newline(&bytes)) {
-		printf("request malformed: no newline\n");
+		print_slice(stdout, bytes);
 		return ERR_PARSE_FAILED;
 	}
 

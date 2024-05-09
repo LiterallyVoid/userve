@@ -80,6 +80,18 @@ Error buffer_reserve_additional(Buffer *self, size_t additional) {
 	return buffer_reserve_total(self, self->len + additional);
 }
 
+void buffer_clear(Buffer *self) {
+	self->len = 0;
+}
+
+void buffer_clear_capacity(Buffer *self) {
+	free(self->bytes);
+
+	self->bytes = NULL;
+	self->len = 0;
+	self->cap = 0;
+}
+
 Error buffer_concat(Buffer *self, Slice slice) {
 	Error err;
 

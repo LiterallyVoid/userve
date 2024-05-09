@@ -59,6 +59,12 @@ Error buffer_reserve_total(Buffer *self, size_t total);
 // This function can return ERR_OUT_OF_MEMORY.
 Error buffer_reserve_additional(Buffer *self, size_t additional);
 
+// Empty `self`, without affecting capacity.
+void buffer_clear(Buffer *self);
+
+// Empty `self` and free capacity.
+void buffer_clear_capacity(Buffer *self);
+
 // Concatenate `slice` to the end of `self`.
 Error buffer_concat(Buffer *self, Slice slice);
 
