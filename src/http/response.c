@@ -125,7 +125,8 @@ static Error http_response_send_headers(HttpResponse *self) {
 	buffer_deinit(&status_line);
 	if (err != ERR_SUCCESS) return err;
 
-	// Write another line to 
+	// The end of this response's headers should be marked by two newlines. It
+	// doesn't really belong in `self->headers`, but a buffer is a buffer.
 	err = buffer_concat(
 		&self->headers,
 		slice_from_cstr("\r\n")
