@@ -43,33 +43,6 @@ static void slice_split_at_index(Slice slice, size_t index, Slice *out_before, S
 	out_after->len = slice.len - index;
 }
 
-static void slice_split_around_character(Slice slice, size_t index, Slice *out_before, Slice *out_after) {
-	assert(slice.len > 0 && index >= 0 && index < slice.len - 1);
-
-	out_before->bytes = slice.bytes;
-	out_before->len = index;
-
-	out_after->bytes = slice.bytes + index + 1;
-	out_after->len = slice.len - index - 1;
-}
-
-// Remove the part of `rest` before the first occurence of `ch`, and return it.
-// If `rest` doesn't contain `ch`, this returns the entire slice.
-static Slice cut(Slice *rest, uint8_t ch) {
-	ssize_t first_newline = find_char(*rest, '\n', 0);
-
-	if (first_newline == -1) {
-		Slice slice = *rest;
-		*rest = slice_keep_bytes_from_end(*rest, 0);
-		return slice;
-	}
-
-	Slice before;
-	slice_split_around_character(*rest, first_newline, &before, rest);
-
-	return before;
-}
-
 // Remove all occurences of `ch` from the start of `rest`.
 static void trim_start(Slice *rest, uint8_t ch) {
 	while (rest->len > 0 && rest->bytes[0] == ch) {
@@ -177,10 +150,6 @@ static bool is_token_byte(uint8_t byte) {
 	}
 
 	return false;
-}
-
-static bool is_uppercase_byte(uint8_t byte) {
-	return byte >= 'A' && byte <= 'Z';
 }
 
 static bool is_target_byte(uint8_t byte) {
