@@ -14,6 +14,8 @@ void http_parser_init(HttpParser *self) {
 	set_undefined(self, sizeof(*self));
 
 	buffer_init(&self->buffer);
+
+	self->done = false;
 }
 
 void http_parser_deinit(HttpParser *self) {
@@ -216,15 +218,18 @@ Error http_parser_poll(
 	Slice bytes,
 	HttpParserPollResult *out_result
 ) {
+	assert(!self->done);
+
 	// We do nothing until we find two newlines in a row, and parse the header then.
-	// We're okay by default.
-	out_result->status = HTTP_PARSER_INCOMPLETE;
+	out_result->done = false;
 
 	// We successfully parsed zero bytes.
 	if (bytes.len == 0) return ERR_SUCCESS;
 
 	size_t index = self->buffer.len;
-	// self->buffer may already end in `\r\n\r`, so we have to look two characters back for the newline.
+
+	// self->buffer may already end in `\r\n\r`, so we may have to look two
+	// characters back for the newline.
 	if (index > 2) {
 		index -= 2;
 	} else {
@@ -270,28 +275,37 @@ Error http_parser_poll(
 
 			self->buffer.len = new_buffer_end;
 
-			out_result->done.remainder_slice = slice_keep_bytes_from_end(all_bytes, removed_bytes);
+			out_result->remainder_slice = slice_keep_bytes_from_end(all_bytes, removed_bytes);
 
 			// We'll fill in `out_result->request` later.
-			out_result->status = HTTP_PARSER_DONE;
-
+			self->done = true;
 			break;
 		}
 
 		prev_newline = next_newline;
 	}
 
-	if (out_result->status != HTTP_PARSER_DONE) return ERR_SUCCESS;
+	if (!self->done) {
+		out_result->done = false;
+		return ERR_SUCCESS;
+	}
+
+	// `out_result->remainder_slice` has already been initialized above, in the only
+	// place that `self->done` is set to true.
+	out_result->done = true;
 
 	// Move `buffer` out of `self`.
 	Buffer buffer = self->buffer;
 
-	// Create a new empty buffer that can be freed without consequence later, in `http_parser_deinit`.
+	// Set `self->buffer` to a newly created buffer that can be freed without
+	// consequence in `http_parser_deinit`.
 	buffer_init(&self->buffer);
 
-	// ALl the actual parsing goes here.
-	Error err = parse_headers(buffer, &out_result->done.request);
+	// All the actual parsing is in here.
+	Error err = parse_headers(buffer, &out_result->request);
 	if (err != 0) {
+		// `result->request` won't be accessible because we're returning an error. Don't
+		// let it leak.
 		buffer_deinit(&buffer);
 
 		return ERR_PARSE_FAILED;

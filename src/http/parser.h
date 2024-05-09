@@ -5,24 +5,18 @@
 
 typedef struct HttpParser {
 	Buffer buffer;
+
+	// Set when this parser has completed parsing, and returned a result with `done`
+	// set to true. Only use for lifecycle validation!
+	bool done;
 } HttpParser;
 
-typedef enum HttpParserStatus {
-	// The request is not yet complete, and the caller should continue to poll this parser with new data.
-	HTTP_PARSER_INCOMPLETE,
-
-	HTTP_PARSER_DONE,
-} HttpParserStatus;
-
 typedef struct HttpParserPollResult {
-	HttpParserStatus status;
+	bool done;
 
-	struct {
-		Slice remainder_slice;
-
-		// Must be deinitialized by the caller.
-		HttpRequest request;
-	} done;
+	// Only defined when `done` is `true`.
+	Slice remainder_slice;
+	HttpRequest request;
 } HttpParserPollResult;
 
 void http_parser_init(HttpParser *self);

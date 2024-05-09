@@ -99,6 +99,10 @@ int main(int argc, char **argv) {
 		HttpParser parser;
 		http_parser_init(&parser);
 
+		bool request_found = false;
+		HttpRequest request;
+		set_undefined(&request, sizeof(request));
+
 		while (true) {
 			uint8_t buffer[512];
 			ssize_t recv_result = recv(connection.fd, &buffer, sizeof(buffer), 0);
@@ -122,24 +126,24 @@ int main(int argc, char **argv) {
 				break;
 			}
 
-			if (result.status == HTTP_PARSER_INCOMPLETE) {
-				continue;
-			} else if (result.status == HTTP_PARSER_DONE) {
-				printf("got HTTP request:\n");
-				print_http_request(stdout, &result.done.request);
-
-				HttpResponse response;
-				http_response_init(&response, connection.fd);
-
-				respond_to_request(&result.done.request, &response);
-
-				http_response_deinit(&response);
-				http_request_deinit(&result.done.request);
-
+			if (result.done) {
+				request_found = true;
+				request = result.request;
 				break;
-			} else {
-				assert(false);
 			}
+		}
+
+		if (request_found) {
+			printf("got HTTP request:\n");
+			print_http_request(stdout, &request);
+
+			HttpResponse response;
+			http_response_init(&response, connection.fd);
+
+			respond_to_request(&request, &response);
+
+			http_response_deinit(&response);
+			http_request_deinit(&request);
 		}
 
 		http_parser_deinit(&parser);
