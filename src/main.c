@@ -46,7 +46,7 @@ static Error respond_to_request(const HttpRequest *req, HttpResponse *res) {
 	return ERR_SUCCESS;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
 	Arguments arguments;
 	arguments_parse(&arguments, argc, argv);
 
