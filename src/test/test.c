@@ -101,6 +101,257 @@ static void test_slice(void) {
 	assert(slice_equal(slice_keep_bytes_from_end(a, 11), a));
 }
 
+#include "../http/parser.h"
+static void test_http_parser(void) {
+	typedef enum {
+		GOOD,
+		BAD,
+		INCOMPLETE
+	} Result;
+	typedef struct {
+		const char *key;
+		const char *value;
+	} Header;
+	struct {
+		Result result;
+
+		const char *method;
+		const char *path;
+		const char *version;
+
+		Header *headers;
+
+		const char *file;
+
+		const char *trailing;
+	} cases[] = {
+		{
+			GOOD,
+			"GET", "/", "HTTP/1.1",
+			(Header[]) {{ 0 }},
+
+			"GET / HTTP/1.1\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+		{
+			GOOD,
+			"POST", "/", "HTTP/1.1",
+			(Header[]) {{"Header", "Value"}, { 0 }},
+
+			"POST / HTTP/1.1\r\n"
+			"Header: Value\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+		{
+			GOOD,
+			"GET", "/", "HTTP/1.0",
+			(Header[]) {{"Header", "Value"}, { 0 }},
+
+			"GET / HTTP/1.0\r\n"
+			"Header: Value\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+		// FIXME: decide if this should be allowed
+		{
+			GOOD,
+			"GET", "/", "",
+			(Header[]) {{"Header", "Value"}, { 0 }},
+			"GET /\r\n"
+			"Header: Value\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// Extra spaces are currently allowed.
+		{
+			GOOD,
+			"GET", "/path/path", "HTTP/1.1",
+			(Header[]) {{ 0 }},
+			"GET      /path/path        HTTP/1.1\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// Leading spaces in headers aren't allowed.
+		{
+			BAD,
+			NULL, NULL, NULL, (Header[]) {{ 0 }},
+
+			"GET / HTTP/1.1\r\n"
+			" Header: Value\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// Ditto, but on the second header instead of the first
+		{
+			BAD,
+			"GET / HTTP/1.1\r\n"
+			"Header: Value\r\n"
+			" Header: Value\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// Spaces before the `GET` are currently not allowed by the parser.
+		{
+			BAD,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			" GET / HTTP/1.1\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// Bare newlines are not allowed, either to end a field or on the request line.
+		{
+			BAD,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / HTTP/1.1\r\n"
+			"test\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+		{
+			BAD,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / HTTP/1.1\n"
+			"test\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// Tabs are not allowed.
+		{
+			BAD,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / \tHTTP/1.1\r\n"
+			"test\r\n"
+			"\r\n",
+
+			.trailing = ""
+		},
+
+		// A lot of things are incomplete.
+		{
+			INCOMPLETE,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"",
+
+			.trailing = ""
+		},
+		{
+			INCOMPLETE,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GE",
+
+			.trailing = ""
+		},
+		{
+			INCOMPLETE,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET /",
+
+			.trailing = ""
+		},
+		{
+			INCOMPLETE,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / ",
+
+			.trailing = ""
+		},
+		{
+			INCOMPLETE,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / HTTP/1.1\r\n"
+			"hea",
+
+			.trailing = ""
+		},
+		{
+			INCOMPLETE,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / HTTP/1.1\r\n"
+			"header: value\r\n"
+			"\r",
+
+			.trailing = ""
+		},
+
+		// The HTTP parser should not consume all input, only until the first \r\n\r\n
+		{
+			GOOD,
+			"GET", "/", "HTTP/1.1",
+			(Header[]) {{ "header-name", "value" }, { 0 }},
+
+			"GET / HTTP/1.1\r\n"
+			"header-name: value\r\n"
+			"\r\n"
+			"POST / HTTP/1.2\r\n"
+			"header2: header2\r\n",
+
+			.trailing = "POST / HTTP/1.2\r\nheader2: header2\r\n",
+		},
+	};
+
+	Error err;
+	HttpParser parser;
+
+	// First run: test every case with a single call to `poll`.
+	for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+		http_parser_init(&parser);
+
+		HttpParserPollResult result;
+
+		err = http_parser_poll(
+			&parser,
+			slice_from_cstr(cases[i].file),
+			&result
+		);
+
+		switch (cases[i].result) {
+		case GOOD: {
+			assert(err == ERR_SUCCESS);
+			assert(result.done);
+
+			Slice trailing = slice_new();
+			if (cases[i].trailing != NULL) {
+				trailing = slice_from_cstr(cases[i].trailing);
+			}
+
+			assert(slice_equal(result.remainder_slice, trailing));
+			break;
+		}
+
+		case INCOMPLETE:
+			assert(err == ERR_SUCCESS);
+			assert(!result.done);
+			assert(cases[i].trailing == NULL);
+			break;
+
+		case BAD:
+			assert(err == ERR_PARSE_FAILED);
+			assert(cases[i].trailing == NULL);
+			break;
+		}
+
+		http_parser_deinit(&parser);
+	}
+}
+
 void test_all(void) {
 	printf("test arguments\n");
 	test_arguments();
@@ -110,6 +361,9 @@ void test_all(void) {
 
 	printf("test slice\n");
 	test_slice();
+
+	printf("test http parser\n");
+	test_http_parser();
 
 	printf("all tests passed\n");
 }
