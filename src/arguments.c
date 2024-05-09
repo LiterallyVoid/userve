@@ -14,7 +14,7 @@ static bool match(const char *arg, const char *match) {
 }
 
 // Returns the suffix if `arg` starts with `prefix`.
-static const char *remove_prefix(const char *arg, const char *prefix) {
+static const char *remove_prefix(const char *prefix, const char *arg) {
 	size_t index = 0;
 	while (true) {
 		// Every character up to now has matched.
@@ -66,7 +66,7 @@ static void print_usage(const char *argv0) {
 	fprintf(stderr, "\t\tshow version\n");
 }
 
-void arguments_parse(Arguments *self, int argc, char **argv) {
+void arguments_parse(Arguments *self, int argc, const char **argv) {
 	// Defaults
 	*self = (Arguments) {
 		.address = "localhost",

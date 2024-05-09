@@ -5,6 +5,8 @@
 #include "server.h"
 #include "util.h"
 
+#include "test/test.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -49,7 +51,7 @@ int main(int argc, char **argv) {
 	arguments_parse(&arguments, argc, argv);
 
 	if (arguments.test) {
-		fprintf(stderr, "todo: tests\n");
+		test_all();
 		return 1;
 	}
 

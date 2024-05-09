@@ -12,4 +12,4 @@ typedef struct Arguments {
 	bool fuzz;
 } Arguments;
 
-void arguments_parse(Arguments *self, int argc, char **argv);
+void arguments_parse(Arguments *self, int argc, const char **argv);

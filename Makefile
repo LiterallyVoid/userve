@@ -13,8 +13,7 @@ OBJECTS = \
 	# end
 
 OBJECTS += \
-	# test/test.c \
-	# test/fuzz.c \
+	src/test/test.o \
 	# end
 
 CFLAGS = -pthread -ftrivial-auto-var-init=pattern -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ftrapv \
