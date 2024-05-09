@@ -156,6 +156,13 @@ Slice buffer_slice(Buffer *self) {
 }
 
 Slice buffer_uninitialized(Buffer *self) {
+	if (self->bytes == NULL || self->cap == 0) {
+		// It's undefined behavior to offset a NULL pointer.
+		assert(self->bytes == NULL && self->len == 0 && self->cap == 0);
+
+		return slice_new();
+	}
+
 	return slice_from_len(
 		self->bytes + self->len,
 		self->cap - self->len
