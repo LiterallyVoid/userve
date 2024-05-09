@@ -45,8 +45,6 @@ typedef struct Buffer {
 } Buffer;
 
 void buffer_init(Buffer *self);
-
-// Free a buffer's memory.
 void buffer_deinit(Buffer *self);
 
 // Make sure `self` has capacity to store `total` bytes in total.
