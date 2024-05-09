@@ -34,4 +34,8 @@ Error arraylist_reserve_additional(ArrayList *self, size_t additional);
 // Copy `item` and append it to `self`.
 //
 // This function can return ERR_OUT_OF_MEMORY.
-Error arraylist_append_one(ArrayList *self, void *item);
+Error arraylist_append(ArrayList *self, void *item);
+
+// Copy `item` and append it to `self`.
+// This function will panic if `self` doesn't have the capacity to hold `item`.
+void arraylist_append_assume_capacity(ArrayList *self, void *item);

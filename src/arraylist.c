@@ -54,16 +54,21 @@ Error arraylist_reserve_additional(ArrayList *self, size_t additional) {
 	return ERR_SUCCESS;
 }
 
-Error arraylist_append_one(ArrayList *self, void *item) {
+Error arraylist_append(ArrayList *self, void *item) {
 	Error err;
 
 	err = arraylist_reserve_additional(self, 1);
 	if (err != ERR_SUCCESS) return err;
 
+	arraylist_append_assume_capacity(self, item);
+	return ERR_SUCCESS;
+}
+
+void arraylist_append_assume_capacity(ArrayList *self, void *item) {
+	assert(self->len + 1 <= self->cap);
+
 	size_t index = self->len;
 	self->len += 1;
 	
 	memcpy(arraylist_get(self, index), item, self->item_size);
-
-	return ERR_SUCCESS;
 }
