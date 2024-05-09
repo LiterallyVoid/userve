@@ -199,7 +199,6 @@ static Error parse_headers(
 	// newline, that means there are more fields than method, path, and version;
 	// and the request is malformed.
 	if (!remove_newline(&bytes)) {
-		print_slice(stdout, bytes);
 		return ERR_PARSE_FAILED;
 	}
 
@@ -283,9 +282,6 @@ Error http_parser_poll(
 	}
 
 	if (out_result->status != HTTP_PARSER_DONE) return ERR_SUCCESS;
-
-	printf("Found end of HTTP request\n");
-	print_slice(stdout, buffer_slice(&self->buffer));;
 
 	// Move `buffer` out of `self`.
 	Buffer buffer = self->buffer;

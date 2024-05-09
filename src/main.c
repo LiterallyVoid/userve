@@ -123,11 +123,9 @@ int main(int argc, char **argv) {
 			}
 
 			if (result.status == HTTP_PARSER_INCOMPLETE) {
-				printf("HTTP parsing incomplete\n");
 				continue;
 			} else if (result.status == HTTP_PARSER_DONE) {
-				printf("HTTP request parsed, bytes remaining: %zu\n", result.done.remainder_slice.len);
-
+				printf("got HTTP request:\n");
 				print_http_request(stdout, &result.done.request);
 
 				HttpResponse response;
