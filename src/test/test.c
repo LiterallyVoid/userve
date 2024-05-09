@@ -206,6 +206,7 @@ static void test_http_parser(void) {
 		// Ditto, but on the second header instead of the first
 		{
 			BAD,
+			NULL, NULL, NULL, (Header[]) { 0 },
 			"GET / HTTP/1.1\r\n"
 			"Header: Value\r\n"
 			" Header: Value\r\n"
