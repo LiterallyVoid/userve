@@ -84,7 +84,11 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 		// --address [address], -a [address]
 		if (match(arg, "-a") || match(arg, "--address")) {
 			i++;
-			if (i >= argc) break;
+			if (i >= argc) {
+				fprintf(stderr, "error: expected address after %s\n\n", arg);
+				print_usage(argv[0]);
+				exit(1);
+			}
 
 			self->address = argv[i];
 
@@ -95,7 +99,11 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 		// --port [port], -p [port]
 		} else if (match(arg, "-p") || match(arg, "--port")) {
 			i++;
-			if (i >= argc) break;
+			if (i >= argc) {
+				fprintf(stderr, "error: expected port after %s\n\n", arg);
+				print_usage(argv[0]);
+				exit(1);
+			}
 
 			self->port = argv[i];
 
@@ -108,7 +116,11 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 
 		} else if (match(arg, "-f") || match(arg, "--fuzz")) {
 			i++;
-			if (i >= argc) break;
+			if (i >= argc) {
+				fprintf(stderr, "error: expected fuzz entrypoint name after %s\n\n", arg);
+				print_usage(argv[0]);
+				exit(1);
+			}
 
 			self->fuzz = argv[i];
 

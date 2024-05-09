@@ -82,9 +82,6 @@ static void test_arguments(TestContext *ctx) {
 
 	Arguments arguments;
 
-	arguments_parse(&arguments, 2, (const char*[]) { "@test0", "--address", "foobar" });
-	EXPECT(ctx, strcmp(arguments.address, "localhost") == 0);
-
 	arguments_parse(&arguments, 3, (const char*[]) { "@test1", "--address", "foobar" });
 	EXPECT(ctx, strcmp(arguments.address, "foobar") == 0);
 
