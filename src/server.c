@@ -166,14 +166,12 @@ Error server_accept(Server *self, ServerConnection *out_connection) {
 
 	ServerAddress *address = &self->addresses[ready_index];
 
-	// We have the stack space. Might as well allocate enough for a Unix domain
-	// socket, even though it's not supported anywhere else.
-	char client_addr_buffer[1024];
+	struct sockaddr_storage client_addr_buffer;
 	socklen_t client_addr_len = sizeof(client_addr_buffer);
 
 	int client_fd = accept(
 		address->listen_fd,
-		(struct sockaddr*) client_addr_buffer,
+		(struct sockaddr*) &client_addr_buffer,
 		&client_addr_len
 	);
 	if (client_fd == -1) {
@@ -187,7 +185,7 @@ Error server_accept(Server *self, ServerConnection *out_connection) {
 		return ERR_OUT_OF_MEMORY;
 	}
 
-	memcpy(client_addr, client_addr_buffer, client_addr_len);
+	memcpy(client_addr, &client_addr_buffer, client_addr_len);
 
 	*out_connection = (ServerConnection) {
 		.fd = client_fd,
