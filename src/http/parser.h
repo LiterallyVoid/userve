@@ -28,8 +28,7 @@ typedef struct HttpParserPollResult {
 void http_parser_init(HttpParser *self);
 void http_parser_deinit(HttpParser *self);
 
-// If parsing fails, `poll` will return `ERR_PARSE_FAILED`;
-// other errors may be printed.
+// If parsing fails, `poll` will return `ERR_PARSE_FAILED`.
 Error http_parser_poll(
 	HttpParser *self,
 	Slice bytes,
