@@ -28,6 +28,7 @@ void http_response_init(HttpResponse *self, int write_fd) {
 
 void http_response_deinit(HttpResponse *self) {
 	Error err;
+
 	switch (self->state) {
 	case HTTP_RESPONSE_STATE_HEADERS:
 		err = http_response_internal_server_error(self);
@@ -41,6 +42,8 @@ void http_response_deinit(HttpResponse *self) {
 		break;
 	}
 	buffer_deinit(&self->headers);
+
+	set_undefined(self, sizeof(*self));
 }
 
 Error http_response_not_found(HttpResponse *self) {
