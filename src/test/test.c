@@ -27,11 +27,9 @@ static void test_end(TestContext *ctx) {
 	}
 }
 
-__attribute__((__format__(__printf__, 4, 5)))
+__attribute__((__format__(__printf__, 2, 3)))
 static void test(
 	TestContext *ctx,
-	const char *file,
-	int line,
 	const char *fmt,
 	...
 ) {
@@ -53,7 +51,6 @@ static void test(
 	va_end(args);
 }
 
-#define TEST(ctx, ...) test(ctx, __FILE__, __LINE__, __VA_ARGS__)
 static void expect(
 	TestContext *ctx,
 	bool condition,
@@ -81,7 +78,7 @@ static void expect(
 
 #include "../arguments.h"
 static void test_arguments(TestContext *ctx) {
-	TEST(ctx, "arguments");
+	test(ctx, "arguments");
 
 	Arguments arguments;
 
@@ -108,11 +105,11 @@ static void test_arguments(TestContext *ctx) {
 
 #include "../buffer.h"
 static void test_buffer(TestContext *ctx) {
-	TEST(ctx, "buffer");
+	test(ctx, "buffer");
 
 	Buffer buffer;
 
-	TEST(ctx, "buffer concat");
+	test(ctx, "buffer concat");
 	buffer_init(&buffer);
 
 	buffer_concat(&buffer, slice_from_cstr("12345"));
@@ -124,7 +121,7 @@ static void test_buffer(TestContext *ctx) {
 	buffer_deinit(&buffer);
 
 
-	TEST(ctx, "buffer concat_printf");
+	test(ctx, "buffer concat_printf");
 	buffer_init(&buffer);
 
 	buffer_concat_printf(&buffer, "hey %d", 123);
@@ -133,7 +130,7 @@ static void test_buffer(TestContext *ctx) {
 	buffer_deinit(&buffer);
 
 
-	TEST(ctx, "buffer reserve");
+	test(ctx, "buffer reserve");
 	buffer_init(&buffer);
 
 	buffer_reserve_total(&buffer, 10);
@@ -153,7 +150,7 @@ static void test_buffer(TestContext *ctx) {
 	}
 	EXPECT(ctx, buffer_slice(&buffer).len == 1020);
 
-	TEST(ctx, "buffer clear");
+	test(ctx, "buffer clear");
 
 	buffer_clear(&buffer);
 	EXPECT(ctx, buffer_slice(&buffer).len == 0);
@@ -167,24 +164,24 @@ static void test_buffer(TestContext *ctx) {
 }
 
 static void test_slice(TestContext *ctx) {
-	TEST(ctx, "slice");
+	test(ctx, "slice");
 	Slice a = slice_from_cstr("abc xyz def");
 
-	TEST(ctx, "slice equal");
+	test(ctx, "slice equal");
 	EXPECT(ctx, slice_equal(a, slice_from_cstr("abc xyz def")));
 	EXPECT(ctx, !slice_equal(a, slice_from_cstr("abc xyz")));
 	EXPECT(ctx, !slice_equal(a, slice_from_cstr("abc xyz defg")));
 	EXPECT(ctx, !slice_equal(a, slice_from_cstr("12345678")));
 
-	TEST(ctx, "slice from_len");
+	test(ctx, "slice from_len");
 	EXPECT(ctx, slice_equal(a, slice_from_len((uint8_t*) "abc xyz def zyx", 11)));
 
-	TEST(ctx, "slice remove_start");
+	test(ctx, "slice remove_start");
 	EXPECT(ctx, slice_equal(slice_remove_start(a, 0), a));
 	EXPECT(ctx, slice_equal(slice_remove_start(a, 4), slice_from_cstr("xyz def")));
 	EXPECT(ctx, slice_equal(slice_remove_start(a, 11), slice_new()));
 
-	TEST(ctx, "slice keep_bytes_from_end");
+	test(ctx, "slice keep_bytes_from_end");
 	EXPECT(ctx, slice_equal(slice_keep_bytes_from_end(a, 0), slice_from_cstr("")));
 	EXPECT(ctx, slice_equal(slice_keep_bytes_from_end(a, 2), slice_from_cstr("ef")));
 	EXPECT(ctx, slice_equal(slice_keep_bytes_from_end(a, 11), a));
@@ -192,7 +189,7 @@ static void test_slice(TestContext *ctx) {
 
 #include "../http/parser.h"
 static void test_http_parser(TestContext *ctx) {
-	TEST(ctx, "http_parser");
+	test(ctx, "http_parser");
 	typedef enum {
 		GOOD,
 		BAD,
@@ -382,7 +379,7 @@ static void test_http_parser(TestContext *ctx) {
 
 	// First run: test every case with a single call to `poll`.
 	for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-		TEST(ctx, "http_parser all up: %s", cases[i].title);
+		test(ctx, "http_parser all up: %s", cases[i].title);
 
 		http_parser_init(&parser);
 
@@ -425,7 +422,7 @@ static void test_http_parser(TestContext *ctx) {
 
 	// Second run: byte-by-byte
 	for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-		TEST(ctx, "http_parser byte-by-byte: %s", cases[i].title);
+		test(ctx, "http_parser byte-by-byte: %s", cases[i].title);
 
 		Slice remainder = slice_new();
 
