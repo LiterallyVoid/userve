@@ -4,29 +4,40 @@
 #include <stdio.h>
 #include <string.h>
 
+#define expect(condition) if (!(condition)) {	\
+	fprintf(	\
+		stderr,	\
+		"%s (%s:%d) failed: %s\n",	\
+		__FUNCTION__,	\
+		__FILE__,	\
+		__LINE__,	\
+		#condition	\
+	);	\
+}
+
 #include "../arguments.h"
 static void test_arguments(void) {
 	Arguments arguments;
 
 	arguments_parse(&arguments, 2, (const char*[]) { "@test0", "--address", "foobar" });
-	assert(strcmp(arguments.address, "localhost") == 0);
+	expect(strcmp(arguments.address, "localhost") == 0);
 
 	arguments_parse(&arguments, 3, (const char*[]) { "@test1", "--address", "foobar" });
-	assert(strcmp(arguments.address, "foobar") == 0);
+	expect(strcmp(arguments.address, "foobar") == 0);
 
 	arguments_parse(&arguments, 2, (const char*[]) { "@test2", "--address=1234" });
-	assert(strcmp(arguments.address, "1234") == 0);
+	expect(strcmp(arguments.address, "1234") == 0);
 
 	arguments_parse(&arguments, 3, (const char*[]) { "@test3", "-a", "--address" });
-	assert(strcmp(arguments.address, "--address") == 0);
+	expect(strcmp(arguments.address, "--address") == 0);
 
 	arguments_parse(&arguments, 3, (const char*[]) { "@test4", "-p", "-t" });
-	assert(strcmp(arguments.port, "-t") == 0);
-	assert(!arguments.test);
+	expect(strcmp(arguments.port, "-t") == 0);
+	expect(!arguments.test);
 
 	arguments_parse(&arguments, 4, (const char*[]) { "@test5", "-p", "", "-t" });
-	assert(strcmp(arguments.port, "") == 0);
-	assert(arguments.test);
+	expect(strcmp(arguments.port, "") == 0);
+	expect(arguments.test);
 }
 
 #include "../buffer.h"
@@ -37,9 +48,9 @@ static void test_buffer(void) {
 
 	buffer_concat(&buffer, slice_from_cstr("12345"));
 	buffer_concat(&buffer, slice_from_cstr("678"));
-	assert(buffer.len == 8);
-	assert(buffer_slice(&buffer).len == 8);
-	assert(memcmp(buffer.bytes, "12345678", 8) == 0);
+	expect(buffer.len == 8);
+	expect(buffer_slice(&buffer).len == 8);
+	expect(memcmp(buffer.bytes, "12345678", 8) == 0);
 
 	buffer_deinit(&buffer);
 
@@ -47,7 +58,7 @@ static void test_buffer(void) {
 	buffer_init(&buffer);
 
 	buffer_concat_printf(&buffer, "hey %d", 123);
-	assert(slice_equal(buffer_slice(&buffer), slice_from_cstr("hey 123")));
+	expect(slice_equal(buffer_slice(&buffer), slice_from_cstr("hey 123")));
 
 	buffer_deinit(&buffer);
 
@@ -55,29 +66,29 @@ static void test_buffer(void) {
 	buffer_init(&buffer);
 
 	buffer_reserve_total(&buffer, 10);
-	assert(buffer_slice(&buffer).len == 0);
-	assert(buffer_uninitialized(&buffer).len >= 10);
+	expect(buffer_slice(&buffer).len == 0);
+	expect(buffer_uninitialized(&buffer).len >= 10);
 
 	buffer_reserve_total(&buffer, 1000);
-	assert(buffer_slice(&buffer).len == 0);
-	assert(buffer_uninitialized(&buffer).len >= 1000);
+	expect(buffer_slice(&buffer).len == 0);
+	expect(buffer_uninitialized(&buffer).len >= 1000);
 
 	buffer_reserve_additional(&buffer, 1020);
-	assert(buffer_slice(&buffer).len == 0);
-	assert(buffer_uninitialized(&buffer).len >= 1020);
+	expect(buffer_slice(&buffer).len == 0);
+	expect(buffer_uninitialized(&buffer).len >= 1020);
 
 	for (int i = 0; i < 102; i++) {
 		buffer_concat(&buffer, slice_from_cstr("123456789A"));
 	}
-	assert(buffer_slice(&buffer).len == 1020);
+	expect(buffer_slice(&buffer).len == 1020);
 
 	buffer_clear(&buffer);
-	assert(buffer_slice(&buffer).len == 0);
-	assert(buffer_uninitialized(&buffer).len >= 1020);
+	expect(buffer_slice(&buffer).len == 0);
+	expect(buffer_uninitialized(&buffer).len >= 1020);
 
 	buffer_clear_capacity(&buffer);
-	assert(buffer_slice(&buffer).len == 0);
-	assert(buffer_uninitialized(&buffer).len == 0);
+	expect(buffer_slice(&buffer).len == 0);
+	expect(buffer_uninitialized(&buffer).len == 0);
 
 	buffer_deinit(&buffer);
 }
@@ -85,20 +96,20 @@ static void test_buffer(void) {
 static void test_slice(void) {
 	Slice a = slice_from_cstr("abc xyz def");
 
-	assert(slice_equal(a, slice_from_cstr("abc xyz def")));
-	assert(!slice_equal(a, slice_from_cstr("abc xyz")));
-	assert(!slice_equal(a, slice_from_cstr("abc xyz defg")));
-	assert(!slice_equal(a, slice_from_cstr("12345678")));
+	expect(slice_equal(a, slice_from_cstr("abc xyz def")));
+	expect(!slice_equal(a, slice_from_cstr("abc xyz")));
+	expect(!slice_equal(a, slice_from_cstr("abc xyz defg")));
+	expect(!slice_equal(a, slice_from_cstr("12345678")));
 
-	assert(slice_equal(a, slice_from_len((uint8_t*) "abc xyz def zyx", 11)));
+	expect(slice_equal(a, slice_from_len((uint8_t*) "abc xyz def zyx", 11)));
 
-	assert(slice_equal(slice_remove_start(a, 0), a));
-	assert(slice_equal(slice_remove_start(a, 4), slice_from_cstr("xyz def")));
-	assert(slice_equal(slice_remove_start(a, 11), slice_new()));
+	expect(slice_equal(slice_remove_start(a, 0), a));
+	expect(slice_equal(slice_remove_start(a, 4), slice_from_cstr("xyz def")));
+	expect(slice_equal(slice_remove_start(a, 11), slice_new()));
 
-	assert(slice_equal(slice_keep_bytes_from_end(a, 0), slice_from_cstr("")));
-	assert(slice_equal(slice_keep_bytes_from_end(a, 2), slice_from_cstr("ef")));
-	assert(slice_equal(slice_keep_bytes_from_end(a, 11), a));
+	expect(slice_equal(slice_keep_bytes_from_end(a, 0), slice_from_cstr("")));
+	expect(slice_equal(slice_keep_bytes_from_end(a, 2), slice_from_cstr("ef")));
+	expect(slice_equal(slice_keep_bytes_from_end(a, 11), a));
 }
 
 #include "../http/parser.h"
@@ -324,27 +335,27 @@ static void test_http_parser(void) {
 
 		switch (cases[i].result) {
 		case GOOD: {
-			assert(err == ERR_SUCCESS);
-			assert(result.done);
+			expect(err == ERR_SUCCESS);
+			expect(result.done);
 
 			Slice trailing = slice_new();
 			if (cases[i].trailing != NULL) {
 				trailing = slice_from_cstr(cases[i].trailing);
 			}
 
-			assert(slice_equal(result.remainder_slice, trailing));
+			expect(slice_equal(result.remainder_slice, trailing));
 			break;
 		}
 
 		case INCOMPLETE:
-			assert(err == ERR_SUCCESS);
-			assert(!result.done);
-			assert(cases[i].trailing == NULL);
+			expect(err == ERR_SUCCESS);
+			expect(!result.done);
+			expect(cases[i].trailing == NULL);
 			break;
 
 		case BAD:
-			assert(err == ERR_PARSE_FAILED);
-			assert(cases[i].trailing == NULL);
+			expect(err == ERR_PARSE_FAILED);
+			expect(cases[i].trailing == NULL);
 			break;
 		}
 
