@@ -51,7 +51,6 @@ static Error open_listen_socket(
 		listen_address.socket_type,
 		0
 	);
-	printf("Created socket: %d\n", listen_fd);
 	if (listen_fd == -1) {
 		perror("socket");
 		return ERR_UNKNOWN;
