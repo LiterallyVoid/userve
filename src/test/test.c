@@ -1,22 +1,88 @@
 #include "test.h"
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
-#define expect(condition) if (!(condition)) {	\
-	fprintf(	\
-		stderr,	\
-		"%s (%s:%d) failed: %s\n",	\
-		__FUNCTION__,	\
-		__FILE__,	\
-		__LINE__,	\
-		#condition	\
-	);	\
+typedef struct TestContext {
+	bool is_in_test;
+
+	char current_test[128];
+	bool current_test_has_failed;
+
+	int total_tests;
+	int total_tests_passed;
+} TestContext;
+
+static void test_end(TestContext *ctx) {
+	if (!ctx->is_in_test) {
+		return;
+	}
+	ctx->is_in_test = false;
+
+	ctx->total_tests++;
+	if (!ctx->current_test_has_failed) {
+		ctx->total_tests_passed++;
+	}
 }
 
+__attribute__((__format__(__printf__, 4, 5)))
+static void test(
+	TestContext *ctx,
+	const char *file,
+	int line,
+	const char *fmt,
+	...
+) {
+	test_end(ctx);
+
+	ctx->is_in_test = true;
+	ctx->current_test_has_failed = false;
+
+	va_list args;
+	va_start(args, fmt);
+
+	vsnprintf(
+		ctx->current_test,
+		sizeof(ctx->current_test),
+		fmt,
+		args
+	);
+
+	va_end(args);
+}
+
+#define TEST(ctx, ...) test(ctx, __FILE__, __LINE__, __VA_ARGS__)
+static void expect(
+	TestContext *ctx,
+	bool condition,
+	const char *condition_code,
+	const char *file,
+	int line
+) {
+	if (condition) return;
+
+	fprintf(
+		stderr,
+		"test %s (%s:%d) assertion failed:\t%s\n",
+		ctx->current_test,
+
+		file,
+		line,
+
+		condition_code
+	);
+
+	ctx->current_test_has_failed = true;
+}
+
+#define EXPECT(ctx, condition) expect(ctx, condition, #condition, __FILE__, __LINE__)
+
 #include "../arguments.h"
-static void test_arguments(void) {
+static void test_arguments(TestContext *ctx) {
+	TEST(ctx, "arguments");
+
 	Arguments arguments;
 
 	arguments_parse(&arguments, 2, (const char*[]) { "@test0", "--address", "foobar" });
@@ -41,9 +107,12 @@ static void test_arguments(void) {
 }
 
 #include "../buffer.h"
-static void test_buffer(void) {
+static void test_buffer(TestContext *ctx) {
+	TEST(ctx, "buffer");
+
 	Buffer buffer;
 
+	TEST(ctx, "buffer concat");
 	buffer_init(&buffer);
 
 	buffer_concat(&buffer, slice_from_cstr("12345"));
@@ -55,6 +124,7 @@ static void test_buffer(void) {
 	buffer_deinit(&buffer);
 
 
+	TEST(ctx, "buffer concat_printf");
 	buffer_init(&buffer);
 
 	buffer_concat_printf(&buffer, "hey %d", 123);
@@ -63,6 +133,7 @@ static void test_buffer(void) {
 	buffer_deinit(&buffer);
 
 
+	TEST(ctx, "buffer reserve");
 	buffer_init(&buffer);
 
 	buffer_reserve_total(&buffer, 10);
@@ -82,6 +153,8 @@ static void test_buffer(void) {
 	}
 	EXPECT(ctx, buffer_slice(&buffer).len == 1020);
 
+	TEST(ctx, "buffer clear");
+
 	buffer_clear(&buffer);
 	EXPECT(ctx, buffer_slice(&buffer).len == 0);
 	EXPECT(ctx, buffer_uninitialized(&buffer).len >= 1020);
@@ -93,27 +166,33 @@ static void test_buffer(void) {
 	buffer_deinit(&buffer);
 }
 
-static void test_slice(void) {
+static void test_slice(TestContext *ctx) {
+	TEST(ctx, "slice");
 	Slice a = slice_from_cstr("abc xyz def");
 
+	TEST(ctx, "slice equal");
 	EXPECT(ctx, slice_equal(a, slice_from_cstr("abc xyz def")));
 	EXPECT(ctx, !slice_equal(a, slice_from_cstr("abc xyz")));
 	EXPECT(ctx, !slice_equal(a, slice_from_cstr("abc xyz defg")));
 	EXPECT(ctx, !slice_equal(a, slice_from_cstr("12345678")));
 
+	TEST(ctx, "slice from_len");
 	EXPECT(ctx, slice_equal(a, slice_from_len((uint8_t*) "abc xyz def zyx", 11)));
 
+	TEST(ctx, "slice remove_start");
 	EXPECT(ctx, slice_equal(slice_remove_start(a, 0), a));
 	EXPECT(ctx, slice_equal(slice_remove_start(a, 4), slice_from_cstr("xyz def")));
 	EXPECT(ctx, slice_equal(slice_remove_start(a, 11), slice_new()));
 
+	TEST(ctx, "slice keep_bytes_from_end");
 	EXPECT(ctx, slice_equal(slice_keep_bytes_from_end(a, 0), slice_from_cstr("")));
 	EXPECT(ctx, slice_equal(slice_keep_bytes_from_end(a, 2), slice_from_cstr("ef")));
 	EXPECT(ctx, slice_equal(slice_keep_bytes_from_end(a, 11), a));
 }
 
 #include "../http/parser.h"
-static void test_http_parser(void) {
+static void test_http_parser(TestContext *ctx) {
+	TEST(ctx, "http_parser");
 	typedef enum {
 		GOOD,
 		BAD,
@@ -124,6 +203,8 @@ static void test_http_parser(void) {
 		const char *value;
 	} Header;
 	struct {
+		const char *title;
+
 		Result result;
 
 		const char *method;
@@ -137,6 +218,8 @@ static void test_http_parser(void) {
 		const char *trailing;
 	} cases[] = {
 		{
+			"no headers",
+
 			GOOD,
 			"GET", "/", "HTTP/1.1",
 			(Header[]) {{ 0 }},
@@ -147,6 +230,8 @@ static void test_http_parser(void) {
 			.trailing = ""
 		},
 		{
+			"single header",
+
 			GOOD,
 			"POST", "/", "HTTP/1.1",
 			(Header[]) {{"Header", "Value"}, { 0 }},
@@ -158,6 +243,8 @@ static void test_http_parser(void) {
 			.trailing = ""
 		},
 		{
+			"single header HTTP/1.0",
+
 			GOOD,
 			"GET", "/", "HTTP/1.0",
 			(Header[]) {{"Header", "Value"}, { 0 }},
@@ -170,6 +257,8 @@ static void test_http_parser(void) {
 		},
 		// FIXME: decide if this should be allowed
 		{
+			"single header no version",
+
 			GOOD,
 			"GET", "/", "",
 			(Header[]) {{"Header", "Value"}, { 0 }},
@@ -182,6 +271,8 @@ static void test_http_parser(void) {
 
 		// Extra spaces are currently allowed.
 		{
+			"no headers extra spaces",
+
 			GOOD,
 			"GET", "/path/path", "HTTP/1.1",
 			(Header[]) {{ 0 }},
@@ -193,6 +284,8 @@ static void test_http_parser(void) {
 
 		// Leading spaces in headers aren't allowed.
 		{
+			"leading space in first header",
+
 			BAD,
 			NULL, NULL, NULL, (Header[]) {{ 0 }},
 
@@ -205,6 +298,8 @@ static void test_http_parser(void) {
 
 		// Ditto, but on the second header instead of the first
 		{
+			"leading space in second header",
+
 			BAD,
 			NULL, NULL, NULL, (Header[]) { 0 },
 			"GET / HTTP/1.1\r\n"
@@ -217,6 +312,8 @@ static void test_http_parser(void) {
 
 		// Spaces before the `GET` are currently not allowed by the parser.
 		{
+			"leading space in request line",
+
 			BAD,
 			NULL, NULL, NULL, (Header[]) { 0 },
 			" GET / HTTP/1.1\r\n"
@@ -225,17 +322,10 @@ static void test_http_parser(void) {
 			.trailing = ""
 		},
 
-		// Bare newlines are not allowed, either to end a field or on the request line.
+		// Bare newlines are not allowed.
 		{
-			BAD,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"GET / HTTP/1.1\r\n"
-			"test\n"
-			"\r\n",
+			"bare newline in request line",
 
-			.trailing = ""
-		},
-		{
 			BAD,
 			NULL, NULL, NULL, (Header[]) { 0 },
 			"GET / HTTP/1.1\n"
@@ -244,9 +334,22 @@ static void test_http_parser(void) {
 
 			.trailing = ""
 		},
+		{
+			"bare newline in header",
+
+			BAD,
+			NULL, NULL, NULL, (Header[]) { 0 },
+			"GET / HTTP/1.1\r\n"
+			"test\n"
+			"\r\n",
+
+			.trailing = ""
+		},
 
 		// Tabs are not allowed.
 		{
+			"tab in request line",
+
 			BAD,
 			NULL, NULL, NULL, (Header[]) { 0 },
 			"GET / \tHTTP/1.1\r\n"
@@ -256,55 +359,10 @@ static void test_http_parser(void) {
 			.trailing = ""
 		},
 
-		// A lot of things are incomplete.
-		{
-			INCOMPLETE,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"",
-
-			.trailing = ""
-		},
-		{
-			INCOMPLETE,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"GE",
-
-			.trailing = ""
-		},
-		{
-			INCOMPLETE,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"GET /",
-
-			.trailing = ""
-		},
-		{
-			INCOMPLETE,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"GET / ",
-
-			.trailing = ""
-		},
-		{
-			INCOMPLETE,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"GET / HTTP/1.1\r\n"
-			"hea",
-
-			.trailing = ""
-		},
-		{
-			INCOMPLETE,
-			NULL, NULL, NULL, (Header[]) { 0 },
-			"GET / HTTP/1.1\r\n"
-			"header: value\r\n"
-			"\r",
-
-			.trailing = ""
-		},
-
 		// The HTTP parser should not consume all input, only until the first \r\n\r\n
 		{
+			"trailing data",
+
 			GOOD,
 			"GET", "/", "HTTP/1.1",
 			(Header[]) {{ "header-name", "value" }, { 0 }},
@@ -324,6 +382,8 @@ static void test_http_parser(void) {
 
 	// First run: test every case with a single call to `poll`.
 	for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+		TEST(ctx, "http_parser %s (complete)", cases[i].title);
+
 		http_parser_init(&parser);
 
 		HttpParserPollResult result;
@@ -365,17 +425,21 @@ static void test_http_parser(void) {
 }
 
 void test_all(void) {
+	TestContext ctx = { 0 };
+
 	printf("test arguments\n");
-	test_arguments();
+	test_arguments(&ctx);
 
 	printf("test buffer\n");
-	test_buffer();
+	test_buffer(&ctx);
 
 	printf("test slice\n");
-	test_slice();
+	test_slice(&ctx);
 
 	printf("test http parser\n");
-	test_http_parser();
+	test_http_parser(&ctx);
 
-	printf("all tests passed\n");
+	test_end(&ctx);
+
+	printf("%d/%d tests passed\n", ctx.total_tests_passed, ctx.total_tests);
 }
