@@ -11,7 +11,6 @@
 void server_connection_deinit(ServerConnection *self) {
 	close(self->fd);
 
-	free(self->server_addr);
 	free(self->client_addr);
 
 	set_undefined(self, sizeof(*self));
@@ -38,6 +37,10 @@ static Error open_listen_socket(
 	ListenAddress listen_address,
 	int *out_listen_fd
 ) {
+	// We may want to put some configuration in `Server` later, e.g. REUSEADDR or
+	// backlog size, so let's keep the argument for now.
+	(void) self;
+
 	set_undefined(out_listen_fd, sizeof(*out_listen_fd));
 
 	// In this function, `err` is a POSIX error, not an `Error` error.
@@ -48,6 +51,7 @@ static Error open_listen_socket(
 		listen_address.socket_type,
 		0
 	);
+	printf("Created socket: %d\n", listen_fd);
 	if (listen_fd == -1) {
 		perror("socket");
 		return ERR_UNKNOWN;
@@ -105,12 +109,14 @@ Error server_listen(Server *self, ListenAddress listen_address) {
 	ServerAddress address;
 	set_undefined(&address, sizeof(address));
 
+	address.listen_fd = listen_fd;
+
+	// Allocate our own `addr` so it can last longer than `listen_address`.
 	address.addr = malloc(listen_address.addr_len);
 	if (address.addr == NULL) {
 		close(listen_fd);
 		return ERR_OUT_OF_MEMORY;
 	}
-
 	memcpy(address.addr, listen_address.addr, listen_address.addr_len);
 
 	address.addr_len = listen_address.addr_len;
@@ -143,6 +149,53 @@ Error server_accept(Server *self, ServerConnection *out_connection) {
 		-1
 	);
 
-	// Blocking server.
+	// Blocking server; the only way `poll` should return is by a socket being ready.
 	if (ready_count <= 0) return ERR_UNKNOWN;
+
+	ssize_t ready_index = -1;
+
+	for (size_t i = 0; i < self->addresses_count; i++) {
+		if ((pollfds[i].revents & POLLIN) != POLLIN) continue;
+
+		ready_index = i;
+		break;
+	}
+
+	// Some other event happened, not `POLLIN`?
+	// Error.
+	if (ready_index < 0) return ERR_UNKNOWN;
+
+	ServerAddress *address = &self->addresses[ready_index];
+
+	// We have the stack space. Might as well allocate enough for a Unix domain
+	// socket, even though it's not supported anywhere else.
+	char client_addr_buffer[1024];
+	socklen_t client_addr_len = sizeof(client_addr_buffer);
+
+	int client_fd = accept(
+		address->listen_fd,
+		(struct sockaddr*) client_addr_buffer,
+		&client_addr_len
+	);
+	if (client_fd == -1) {
+		perror("accept");
+		return ERR_UNKNOWN;
+	}
+
+	struct sockaddr *client_addr = malloc(client_addr_len);
+	if (client_addr == NULL) {
+		close(client_fd);
+		return ERR_OUT_OF_MEMORY;
+	}
+
+	memcpy(client_addr, client_addr_buffer, client_addr_len);
+
+	*out_connection = (ServerConnection) {
+		.fd = client_fd,
+
+		.client_addr = client_addr,
+		.client_addr_len = client_addr_len,
+	};
+
+	return ERR_SUCCESS;
 }

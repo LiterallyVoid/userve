@@ -22,18 +22,15 @@ typedef struct ServerConnection {
 	// This will be closed by `server_connection_deinit`.
 	int fd;
 
-	// Which address accepted the connection.
-	struct sockaddr *server_addr;
-	socklen_t server_addr_len;
-
 	// The address of the connected client.
 	struct sockaddr *client_addr;
 	socklen_t client_addr_len;
 } ServerConnection;
 
-void server_connection_addr();
 void server_connection_deinit(ServerConnection *self);
 
+// A ServerAddress is the state for a single address that a Server is listening
+// on.
 typedef struct ServerAddress {
 	int listen_fd;
 
