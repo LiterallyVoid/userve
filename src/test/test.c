@@ -1,80 +1,10 @@
 #include "test.h"
+#include "harness.h"
 
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-
-typedef struct TestContext {
-	bool is_in_test;
-
-	char current_test[128];
-	bool current_test_has_failed;
-
-	int total_tests;
-	int total_tests_passed;
-} TestContext;
-
-static void test_end(TestContext *ctx) {
-	if (!ctx->is_in_test) {
-		return;
-	}
-	ctx->is_in_test = false;
-
-	ctx->total_tests++;
-	if (!ctx->current_test_has_failed) {
-		ctx->total_tests_passed++;
-	}
-}
-
-__attribute__((__format__(__printf__, 2, 3)))
-static void test(
-	TestContext *ctx,
-	const char *fmt,
-	...
-) {
-	test_end(ctx);
-
-	ctx->is_in_test = true;
-	ctx->current_test_has_failed = false;
-
-	va_list args;
-	va_start(args, fmt);
-
-	vsnprintf(
-		ctx->current_test,
-		sizeof(ctx->current_test),
-		fmt,
-		args
-	);
-
-	va_end(args);
-}
-
-static void expect(
-	TestContext *ctx,
-	bool condition,
-	const char *condition_code,
-	const char *file,
-	int line
-) {
-	if (condition) return;
-
-	fprintf(
-		stderr,
-		"test %s (%s:%d) assertion failed:\t%s\n",
-		ctx->current_test,
-
-		file,
-		line,
-
-		condition_code
-	);
-
-	ctx->current_test_has_failed = true;
-}
-
-#define EXPECT(ctx, condition) expect(ctx, condition, #condition, __FILE__, __LINE__)
 
 #include "../arguments.h"
 static void test_arguments(TestContext *ctx) {

@@ -13,6 +13,7 @@ OBJECTS = \
 	# end
 
 OBJECTS += \
+	src/test/harness.o \
 	src/test/test.o \
 	# end
 
