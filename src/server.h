@@ -22,7 +22,8 @@ typedef struct ServerConnection {
 	// This will be closed by `server_connection_deinit`.
 	int fd;
 
-	// The address of the connected client.
+	// The address of the connected client. This is an allocation that will be
+	// freed by `server_connection_deinit`.
 	struct sockaddr *client_addr;
 	socklen_t client_addr_len;
 } ServerConnection;
