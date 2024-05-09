@@ -15,7 +15,10 @@ OBJECTS = \
 OBJECTS += \
 	src/test/harness.o \
 	src/test/test.o \
-	# end
+	src/test/arguments.o \
+	src/test/buffer.o \
+	src/test/http_parser.o \
+	src/test/slice.o
 
 CFLAGS = -pthread -ftrivial-auto-var-init=pattern -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ftrapv \
 	-DUSERVE_VERSION=\"v0.1.0\"
