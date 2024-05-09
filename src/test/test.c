@@ -227,7 +227,7 @@ static void test_http_parser(TestContext *ctx) {
 			"GET / HTTP/1.1\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 		{
 			"single header",
@@ -240,7 +240,7 @@ static void test_http_parser(TestContext *ctx) {
 			"Header: Value\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 		{
 			"single header HTTP/1.0",
@@ -253,7 +253,7 @@ static void test_http_parser(TestContext *ctx) {
 			"Header: Value\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 		// FIXME: decide if this should be allowed
 		{
@@ -266,7 +266,7 @@ static void test_http_parser(TestContext *ctx) {
 			"Header: Value\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// Extra spaces are currently allowed.
@@ -279,7 +279,7 @@ static void test_http_parser(TestContext *ctx) {
 			"GET      /path/path        HTTP/1.1\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// Leading spaces in headers aren't allowed.
@@ -293,7 +293,7 @@ static void test_http_parser(TestContext *ctx) {
 			" Header: Value\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// Ditto, but on the second header instead of the first
@@ -307,7 +307,7 @@ static void test_http_parser(TestContext *ctx) {
 			" Header: Value\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// Spaces before the `GET` are currently not allowed by the parser.
@@ -319,7 +319,7 @@ static void test_http_parser(TestContext *ctx) {
 			" GET / HTTP/1.1\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// Bare newlines are not allowed.
@@ -332,7 +332,7 @@ static void test_http_parser(TestContext *ctx) {
 			"test\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 		{
 			"bare newline in header",
@@ -343,7 +343,7 @@ static void test_http_parser(TestContext *ctx) {
 			"test\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// Tabs are not allowed.
@@ -356,7 +356,7 @@ static void test_http_parser(TestContext *ctx) {
 			"test\r\n"
 			"\r\n",
 
-			.trailing = ""
+			NULL
 		},
 
 		// The HTTP parser should not consume all input, only until the first \r\n\r\n
@@ -382,7 +382,7 @@ static void test_http_parser(TestContext *ctx) {
 
 	// First run: test every case with a single call to `poll`.
 	for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
-		TEST(ctx, "http_parser %s (complete)", cases[i].title);
+		TEST(ctx, "http_parser all up: %s", cases[i].title);
 
 		http_parser_init(&parser);
 
@@ -405,6 +405,60 @@ static void test_http_parser(TestContext *ctx) {
 			}
 
 			EXPECT(ctx, slice_equal(result.remainder_slice, trailing));
+			break;
+		}
+
+		case INCOMPLETE:
+			EXPECT(ctx, err == ERR_SUCCESS);
+			EXPECT(ctx, !result.done);
+			EXPECT(ctx, cases[i].trailing == NULL);
+			break;
+
+		case BAD:
+			EXPECT(ctx, err == ERR_PARSE_FAILED);
+			EXPECT(ctx, cases[i].trailing == NULL);
+			break;
+		}
+
+		http_parser_deinit(&parser);
+	}
+
+	// Second run: byte-by-byte
+	for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+		TEST(ctx, "http_parser byte-by-byte: %s", cases[i].title);
+
+		Slice remainder = slice_new();
+
+		http_parser_init(&parser);
+
+		HttpParserPollResult result;
+
+		const char *stream = cases[i].file;
+		for (size_t byte_index = 0; stream[byte_index] != '\0'; byte_index++) {
+			err = http_parser_poll(
+				&parser,
+				slice_from_len((uint8_t*) &stream[byte_index], 1),
+				&result
+			);
+
+			if (result.done || err != ERR_SUCCESS) {
+				remainder = slice_from_cstr(stream);
+				remainder = slice_remove_start(remainder, byte_index + 1);
+				break;
+			}
+		}
+
+		switch (cases[i].result) {
+		case GOOD: {
+			EXPECT(ctx, err == ERR_SUCCESS);
+			EXPECT(ctx, result.done);
+
+			Slice trailing = slice_new();
+			if (cases[i].trailing != NULL) {
+				trailing = slice_from_cstr(cases[i].trailing);
+			}
+
+			EXPECT(ctx, slice_equal(remainder, trailing));
 			break;
 		}
 
