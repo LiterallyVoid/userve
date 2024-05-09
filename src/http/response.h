@@ -17,6 +17,7 @@ typedef struct {
 	// A file descriptor to write the response to.
 	int write_fd;
 
+	int status;
 	Buffer headers;
 } HttpResponse;
 
@@ -27,6 +28,10 @@ void http_response_init(HttpResponse *self, int write_fd);
 void http_response_deinit(HttpResponse *self);
 
 void http_response_set_status(HttpResponse *self, HttpStatus status);
+
+// Remove all headers from `self`.
+void http_response_clear_headers(HttpResponse *self);
+
 void http_response_add_header(HttpResponse *self, Slice header, Slice foo);
 
 void http_response_end(HttpResponse *self);

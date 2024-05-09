@@ -133,7 +133,7 @@ static bool is_any_byte(uint8_t byte) {
 
 // Returns `0` if the parse was successful or `-1` otherwise.
 // Only takes ownership of `buffer` if the parse was successful.
-static int parse_headers(
+static Error parse_headers(
 	Buffer buffer,
 	HttpRequest *request
 ) {
@@ -149,13 +149,13 @@ static int parse_headers(
 	Slice method = cut_field(&bytes, is_uppercase_byte);
 	if (method.len == 0) {
 		printf("request malformed: no method\n");
-		return -1;
+		return ERR_PARSE_FAILED;
 	}
 
 	Slice path = cut_field(&bytes, NULL);
 	if (path.len == 0) {
 		printf("request malformed: no path\n");
-		return -1;
+		return ERR_PARSE_FAILED;
 	}
 
 	Slice version = cut_field(&bytes, NULL);
@@ -165,7 +165,7 @@ static int parse_headers(
 	// there are more fields than method, path, and version; and the request is malformed.
 	if (!remove_newline(&bytes)) {
 		printf("request malformed: no newline\n");
-		return -1;
+		return ERR_PARSE_FAILED;
 	}
 
 	request->buffer = buffer;
@@ -174,10 +174,10 @@ static int parse_headers(
 	request->path = path;
 	request->version = version;
 
-	return 0;
+	return ERR_SUCCESS;
 }
 
-void http_parser_poll(
+Error http_parser_poll(
 	HttpParser *self,
 	Slice bytes,
 	HttpParserPollResult *out_result
@@ -186,7 +186,8 @@ void http_parser_poll(
 	// We're okay by default.
 	out_result->status = HTTP_PARSER_INCOMPLETE;
 
-	if (bytes.len == 0) return;
+	// We successfully parsed zero bytes.
+	if (bytes.len == 0) return ERR_SUCCESS;
 
 	size_t index = self->buffer.len;
 	// self->buffer may already end in `\r\n\r`, so we have to look two characters back for the newline.
@@ -246,7 +247,7 @@ void http_parser_poll(
 		prev_newline = next_newline;
 	}
 
-	if (out_result->status != HTTP_PARSER_DONE) return;
+	if (out_result->status != HTTP_PARSER_DONE) return ERR_SUCCESS;
 
 	printf("Found end of HTTP request\n");
 	print_slice(stdout, buffer_slice(&self->buffer));;
@@ -258,15 +259,12 @@ void http_parser_poll(
 	buffer_init(&self->buffer);
 
 	// ALl the actual parsing goes here.
-	int err = parse_headers(buffer, &out_result->done.request);
-
+	Error err = parse_headers(buffer, &out_result->done.request);
 	if (err != 0) {
 		buffer_deinit(&buffer);
-		out_result->status = HTTP_PARSER_MALFORMED;
-	} else {
-		// `status` is unchanged from above, where it's set to `HTTP_PARSER_DONE`.
-		// `request` has been filled in by `parse_headers`.
-		//
-		// We're done!
+
+		return ERR_PARSE_FAILED;
 	}
+
+	return ERR_SUCCESS;
 }

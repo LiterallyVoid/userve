@@ -120,15 +120,15 @@ int main(int argc, char **argv) {
 			assert(buffer_len <= sizeof(buffer));
 
 			HttpParserPollResult result;
-			http_parser_poll(&parser, slice_from_len(buffer, buffer_len), &result);
+			Error err = http_parser_poll(&parser, slice_from_len(buffer, buffer_len), &result);
+			if (err != ERR_SUCCESS) {
+				printf("error parsing request: %s\n", error_to_string(err));
+				break;
+			}
 
 			if (result.status == HTTP_PARSER_INCOMPLETE) {
 				printf("HTTP parsing incomplete\n");
 				continue;
-			} else if (result.status == HTTP_PARSER_MALFORMED) {
-				printf("HTTP request malformed\n");
-
-				break;
 			} else if (result.status == HTTP_PARSER_DONE) {
 				printf("HTTP request parsed, bytes remaining: %zu\n", result.done.remainder_slice.len);
 

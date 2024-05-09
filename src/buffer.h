@@ -1,5 +1,7 @@
 #pragma once
 
+#include "error.h"
+
 #include <sys/types.h>
 
 /// TODO: rename this to bytes.{h,c} instead of buffer.
@@ -45,16 +47,21 @@ void buffer_init(Buffer *self);
 void buffer_deinit(Buffer *self);
 
 // Make sure `self` has capacity to store `total` bytes in total.
-void buffer_reserve_total(Buffer *self, size_t total);
+//
+// This function can return ERR_OUT_OF_MEMORY.
+Error buffer_reserve_total(Buffer *self, size_t total);
 
 // Make sure `self` has capacity to store `additional` more bytes.
-void buffer_reserve_additional(Buffer *self, size_t additional);
+//
+// This function can return ERR_OUT_OF_MEMORY.
+Error buffer_reserve_additional(Buffer *self, size_t additional);
 
 // Concatenate `slice` to the end of `self`.
-void buffer_concat(Buffer *self, Slice slice);
+Error buffer_concat(Buffer *self, Slice slice);
 
-// Concatenate a `printf`-formatted string to `self`. If `printf` encounters an
-// error, return `-1`. Otherwise, return the number of bytes written.
+// Concatenate a `printf`-formatted string to `self`. If `printf` encounters
+// an error, this function returns ERR_UNKNOWN. Otherwise, return the number of
+// bytes written.
 __attribute__((__format__(__printf__, 2, 3)))
 int buffer_concat_printf(Buffer *self, const char *fmt, ...);
 

@@ -50,35 +50,44 @@ void buffer_deinit(Buffer *self) {
 	set_undefined(self, sizeof(*self));
 }
 
-void buffer_reserve_total(Buffer *self, size_t total) {
-	if (self->cap >= total) return;
+Error buffer_reserve_total(Buffer *self, size_t total) {
+	if (self->cap >= total) return ERR_SUCCESS;
 
 	size_t new_cap = next_power_of_two(total);
 	assert(new_cap >= self->cap);
 	assert(new_cap >= total);
 
 	uint8_t *new_bytes = realloc(self->bytes, new_cap);
-	assert(new_bytes != NULL);
+	if (new_bytes == NULL) return ERR_OUT_OF_MEMORY;
 
 	self->cap = new_cap;
 	self->bytes = new_bytes;
+
+	return ERR_SUCCESS;
 }
 
-void buffer_reserve_additional(Buffer *self, size_t additional) {
+Error buffer_reserve_additional(Buffer *self, size_t additional) {
 	// Unsigned integer overflow isn't undefined behavior, so this is well-defined.
 	assert(self->len + additional >= self->len);
 
-	buffer_reserve_total(self, self->len + additional);
+	return buffer_reserve_total(self, self->len + additional);
 }
 
-void buffer_concat(Buffer *self, Slice slice) {
-	buffer_reserve_additional(self, slice.len);
+Error buffer_concat(Buffer *self, Slice slice) {
+	Error err;
+
+	err = buffer_reserve_additional(self, slice.len);
+	if (err != ERR_SUCCESS) return err;
 
 	memcpy(self->bytes + self->len, slice.bytes, slice.len);
 	self->len += slice.len;
+
+	return ERR_SUCCESS;
 }
 
 int buffer_concat_printf(Buffer *self, const char *fmt, ...) {
+	Error err;
+
 	// Have a reasonable amount of space for the fast path of only calling
 	// `vsnprintf` once.
 	buffer_reserve_additional(self, 128);
@@ -96,7 +105,7 @@ int buffer_concat_printf(Buffer *self, const char *fmt, ...) {
 		va_end(args);
 
 		if (space_required < 0) {
-			return -1;
+			return ERR_UNKNOWN;
 		}
 
 		if ((size_t) space_required <= space_available) {
@@ -109,15 +118,14 @@ int buffer_concat_printf(Buffer *self, const char *fmt, ...) {
 		}
 
 		// `vsnprintf` shouldn't require a different amount of bytes the second time; if this happens, something else has gone wrong.
-		if (i != 0) {
-			break;
-		}
+		if (i != 0) return ERR_UNKNOWN;
 
 		// Reserve more space for the second time around.
-		buffer_reserve_additional(self, space_required);
+		err = buffer_reserve_additional(self, space_required);
+		if (err != ERR_SUCCESS) return err;
 	}
 
-	return -1;
+	return ERR_UNKNOWN;
 }
 
 Slice buffer_slice(Buffer *self) {
