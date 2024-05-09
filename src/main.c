@@ -92,6 +92,10 @@ int main(int argc, char **argv) {
 
 			if (err == ERR_SUCCESS) break;
 
+			printf(" failed to listen at http://");
+			print_address(stdout, cursor->ai_addr, cursor->ai_addrlen);
+			printf(": %s\n", error_to_string(err));
+
 			uint16_t *port_raw;
 			if (cursor->ai_addr->sa_family == AF_INET) {
 				struct sockaddr_in *addr = (struct sockaddr_in*) cursor->ai_addr;

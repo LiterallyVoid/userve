@@ -47,7 +47,7 @@ static void print_usage(const char *argv0) {
 
 	fprintf(stderr, "\t-p [port], --port [port]\n");
 	fprintf(stderr, "\t\tlisten on port [port] (default: 3000)\n");
-	fprintf(stderr, "\t\tnote: if listening on [port] fails, userve will try up to five sequential ports above that port\n");
+	fprintf(stderr, "\t\tnote: if listening on [port] fails, userve will try up to five successive ports above that port\n");
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "\t-t, --test\n");
