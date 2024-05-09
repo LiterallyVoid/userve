@@ -9,7 +9,7 @@ typedef struct Arguments {
 	const char *port;
 
 	bool test;
-	bool fuzz;
+	const char *fuzz;
 } Arguments;
 
 void arguments_parse(Arguments *self, int argc, const char **argv);

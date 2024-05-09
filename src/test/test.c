@@ -475,7 +475,7 @@ static void test_http_parser(TestContext *ctx) {
 	}
 }
 
-void test_all(void) {
+Error test_all(void) {
 	TestContext ctx = { 0 };
 
 	printf("test arguments\n");
@@ -493,4 +493,10 @@ void test_all(void) {
 	test_end(&ctx);
 
 	printf("%d/%d tests passed\n", ctx.total_tests_passed, ctx.total_tests);
+
+	if (ctx.total_tests_passed != ctx.total_tests) {
+		return ERR_UNKNOWN;
+	}
+
+	return ERR_SUCCESS;
 }

@@ -1,3 +1,5 @@
 #pragma once
 
-void test_all(void);
+#include "../error.h"
+
+Error test_all(void);

@@ -51,8 +51,11 @@ int main(int argc, const char **argv) {
 	arguments_parse(&arguments, argc, argv);
 
 	if (arguments.test) {
-		test_all();
-		return 1;
+		Error err = test_all();
+
+		if (err == ERR_SUCCESS) return EXIT_SUCCESS;
+
+		return EXIT_FAILURE;
 	}
 
 	if (arguments.fuzz) {

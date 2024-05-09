@@ -51,11 +51,11 @@ static void print_usage(const char *argv0) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "\t-t, --test\n");
-	fprintf(stderr, "\t\trun tests (very very wip)\n");
+	fprintf(stderr, "\t\trun tests\n");
 	fprintf(stderr, "\n");
 
-	fprintf(stderr, "\t-f, --fuzz\n");
-	fprintf(stderr, "\t\trun fuzzer (very very wip)\n");
+	fprintf(stderr, "\t-f [system], --fuzz [system]\n");
+	fprintf(stderr, "\t\tentrypoint for fuzzing [system] (very very wip)\n");
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "\t-h, --help, -?\n");
@@ -73,7 +73,7 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 		.port = "3000",
 
 		.test = false,
-		.fuzz = false,
+		.fuzz = NULL,
 	};
 
 	for (int i = 1; i < argc; i++) {
@@ -107,7 +107,14 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 			self->test = true;
 
 		} else if (match(arg, "-f") || match(arg, "--fuzz")) {
-			self->fuzz = true;
+			i++;
+			if (i >= argc) break;
+
+			self->fuzz = argv[i];
+
+		} else if ((parsed = remove_prefix("--fuzz=", arg)) != NULL) {
+			self->fuzz = parsed;
+
 
 		} else if (match(arg, "-h") || match(arg, "--help") || match(arg, "-?")) {
 			fprintf(stderr, "error: unknown argument '%s'\n\n", arg);
