@@ -32,6 +32,8 @@ static Error respond_to_request(const HttpRequest *req, HttpResponse *res) {
 			slice_from_cstr("hey...?")
 		);
 		if (err != ERR_SUCCESS) return err;
+
+		return ERR_SUCCESS;
 	}
 
 	err = http_response_not_found(res);
