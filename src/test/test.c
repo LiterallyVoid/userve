@@ -12,8 +12,19 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "common/hash.h"
+
+static void test_hash(TestContext *ctx) {
+	test(ctx, "hash");
+
+	EXPECT(ctx, hash(slice_from_cstr("a")) != hash(slice_from_cstr("b")));
+}
+
 Error test_all(void) {
 	TestContext ctx = { 0 };
+
+	printf("test hash\n");
+	test_hash(&ctx);
 
 	printf("test arguments\n");
 	test_arguments(&ctx);

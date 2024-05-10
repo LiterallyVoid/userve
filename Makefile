@@ -1,4 +1,5 @@
 OBJECTS = \
+	src/common/hash.o	\
 	src/types/buffer.o	\
 	src/types/slice.o	\
 	src/types/hashmap.o	\
