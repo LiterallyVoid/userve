@@ -26,13 +26,16 @@ void test_hashmap(TestContext *ctx) {
 
 	EXPECT(ctx, entry.key_ptr != NULL);
 	EXPECT(ctx, entry.value_ptr != NULL);
-	EXPECT(ctx, entry.occupied);
+	EXPECT(ctx, !entry.occupied);
 
-	// The hashmap won't be consistent until a key is written into `entry.key`.
-	hashmap_check_consistency(&h);
+	// The hashmap won't be consistent until a key is written into `entry.key`...
+	//hashmap_check_consistency(&h);
 
 	*entry.key_ptr = keys[0];
 	*(int*) entry.value_ptr = 12345;
+
+	// But now it should be consistent.
+	hashmap_check_consistency(&h);
 
 	entry = hashmap_get(&h, keys[0]);
 	EXPECT(ctx, entry.key_ptr != NULL);
