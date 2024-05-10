@@ -5,6 +5,7 @@
 #include "util.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 static uint32_t hash_sentinel_aware(Slice key) {
@@ -91,18 +92,26 @@ void hashmap_check_consistency(HashMap *self) {
 	assert(tombstones_count == self->tombstones_count);
 }
 
-Error hashmap_reserve_total(HashMap *self, size_t total) {
+Error hashmap_reserve_additional(HashMap *self, size_t additional) {
 	// Careful! We have to take tombstones into account here---for example, if this
 	// map's half full of tombstones, adding half of our capacity would make the map
 	// three-quarters full (average case) or entirely full (worst case).
-	//
-	// And it's also hard to 
 
-	assert(false); // todo
-}
+	size_t new_cap = self->values_count + additional;
+	if (new_cap <= self->values_count) return ERR_OUT_OF_MEMORY;
 
-Error hashmap_reserve_additional(HashMap *self, size_t additional) {
-	return hashmap_reserve_total(self, self->values_count + additional);
+	// Make sure `new_cap` didn't overflow.
+	// This is safe because unsigned integer overflow is defined to wrap.
+	assert(new_cap >= self->values_count);
+
+	new_cap += new_cap / 4;
+	// Make sure `new_cap` didn't overflow.
+	// This is safe because unsigned integer overflow is defined to wrap.
+	assert(new_cap >= self->values_count + additional);
+
+	// We have a 32-bit hash function; more capacity is useless.
+	if (new_cap > UINT32_MAX) return ERR_OUT_OF_MEMORY;
+
 }
 
 static HashMapEntry hashmap_construct_entry(HashMap *self, size_t slot, bool occupied) {

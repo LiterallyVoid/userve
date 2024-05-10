@@ -44,9 +44,6 @@ void hashmap_deinit(HashMap *self);
 // Panic if any of `self`'s invariants are broken.
 void hashmap_check_consistency(HashMap *self);
 
-// Make sure `self` has the capacity to store `total` items.
-Error hashmap_reserve_total(HashMap *self, size_t total);
-
 // Make sure `self` has the capacity to store `additional` more items.
 Error hashmap_reserve_additional(HashMap *self, size_t additional);
 
