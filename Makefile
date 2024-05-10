@@ -28,7 +28,8 @@ OBJECTS += \
 CFLAGS = \
 	-ftrivial-auto-var-init=pattern	\
 	-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ftrapv	\
-	-DUSERVE_VERSION=\"v0.1.0\"
+	-DUSERVE_VERSION=\"v0.1.0\" \
+	-D_POSIX_C_SOURCE=200112L
 
 INCLUDES = -Isrc/
 
