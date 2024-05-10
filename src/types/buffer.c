@@ -57,10 +57,16 @@ Error buffer_concat(Buffer *self, Slice slice) {
 	err = buffer_reserve_additional(self, slice.len);
 	if (err != ERR_SUCCESS) return err;
 
-	memcpy(self->bytes + self->len, slice.bytes, slice.len);
-	self->len += slice.len;
+	buffer_concat_assume_capacity(self, slice);
 
 	return ERR_SUCCESS;
+}
+
+void buffer_concat_assume_capacity(Buffer *self, Slice slice) {
+	assert(slice.len <= (self->cap - self->len));
+
+	memcpy(self->bytes + self->len, slice.bytes, slice.len);
+	self->len += slice.len;
 }
 
 Error buffer_concat_printf(Buffer *self, const char *fmt, ...) {

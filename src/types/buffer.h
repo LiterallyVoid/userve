@@ -40,6 +40,10 @@ void buffer_clear_capacity(Buffer *self);
 // Concatenate `slice` to the end of `self`.
 Error buffer_concat(Buffer *self, Slice slice);
 
+// Concatenate `slice` to the end of `self`, panicking if `self` doesn't have
+// the capacity for it.
+void buffer_concat_assume_capacity(Buffer *self, Slice slice);
+
 // Concatenate a `printf`-formatted string to `self`. If `printf` encounters
 // an error, this function returns ERR_UNKNOWN. Otherwise, return `ERR_SUCCESS`.
 __attribute__((__format__(__printf__, 2, 3)))
