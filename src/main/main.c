@@ -1,11 +1,11 @@
+#include "../http/parser.h"
+#include "../http/response.h"
+#include "../net/server.h"
+#include "../print.h"
+#include "../util.h"
 #include "arguments.h"
-#include "http/parser.h"
-#include "http/response.h"
-#include "net/server.h"
-#include "print.h"
-#include "util.h"
 
-#include "test/test.h"
+#include "../test/test.h"
 
 #include <assert.h>
 #include <stddef.h>

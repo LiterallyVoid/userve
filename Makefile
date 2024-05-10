@@ -1,11 +1,11 @@
 OBJECTS = \
-	src/arguments.o \
 	src/buffer.o	\
 	src/error.o	\
 	src/http/parser.o	\
 	src/http/request.o	\
 	src/http/response.o	\
-	src/main.o	\
+	src/main/arguments.o \
+	src/main/main.o	\
 	src/print.o	\
 	src/net/server.o \
 	src/util.o \
