@@ -7,9 +7,10 @@ typedef enum Error {
 	ERR_UNKNOWN = -1,
 	ERR_OUT_OF_MEMORY = -2,
 	ERR_NO_SPACE = -3,
+	ERR_NOT_FOUND = -4,
 
 	ERR_PARSE_FAILED = -100,
-	ERR_NOT_FOUND = -101,
+	ERR_HTTP_NOT_FOUND = -101,
 
 } Error;
 
