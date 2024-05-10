@@ -1,6 +1,6 @@
-#include "request.h"
+#include "http/request.h"
 
-#include "../util.h"
+#include "util.h"
 
 void http_request_deinit(HttpRequest *self) {
 	buffer_deinit(&self->buffer);

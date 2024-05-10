@@ -1,5 +1,5 @@
-#include "http_parser.h"
-#include "../http/parser.h"
+#include "test/http_parser.h"
+#include "http/parser.h"
 
 #include <stdlib.h>
 

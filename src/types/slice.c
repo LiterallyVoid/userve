@@ -1,4 +1,4 @@
-#include "slice.h"
+#include "types/slice.h"
 
 #include <assert.h>
 #include <stdlib.h>

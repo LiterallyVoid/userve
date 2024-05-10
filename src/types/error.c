@@ -1,4 +1,4 @@
-#include "error.h"
+#include "types/error.h"
 
 const char *error_to_string(Error self) {
 	switch (self) {

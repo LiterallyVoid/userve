@@ -25,6 +25,8 @@ CFLAGS = \
 	-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -ftrapv	\
 	-DUSERVE_VERSION=\"v0.1.0\"
 
+INCLUDES = -Isrc/
+
 LDFLAGS =
 
 WARNINGS = -Wall -Wextra -Wmissing-prototypes -Wvla

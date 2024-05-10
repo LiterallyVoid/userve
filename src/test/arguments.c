@@ -1,5 +1,5 @@
-#include "arguments.h"
-#include "../main/arguments.h"
+#include "test/arguments.h"
+#include "main/arguments.h"
 
 #include <string.h>
 

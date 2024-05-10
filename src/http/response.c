@@ -1,6 +1,6 @@
-#include "response.h"
+#include "http/response.h"
 
-#include "../util.h"
+#include "util.h"
 
 #include <assert.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types/buffer.h"
+#include "types/buffer.h"
 
 // Long ago, the four nations lived in harmony.
 typedef enum HttpStatus {

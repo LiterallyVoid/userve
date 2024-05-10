@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types/error.h"
+#include "types/error.h"
 
 #include <netinet/in.h>
 

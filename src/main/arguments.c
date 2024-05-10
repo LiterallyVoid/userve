@@ -1,6 +1,6 @@
 // Not happy with the code here; it's in dire need for... I don't know. Something.
 
-#include "arguments.h"
+#include "main/arguments.h"
 
 #include <stdio.h>
 #include <stdlib.h>

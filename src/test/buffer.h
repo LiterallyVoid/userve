@@ -1,5 +1,5 @@
 #pragma once
 
-#include "harness.h"
+#include "test/harness.h"
 
 void test_buffer(TestContext *ctx);

@@ -1,11 +1,10 @@
-#include "test.h"
+#include "test/test.h"
+#include "test/harness.h"
 
-#include "harness.h"
-
-#include "arguments.h"
-#include "buffer.h"
-#include "http_parser.h"
-#include "slice.h"
+#include "test/arguments.h"
+#include "test/buffer.h"
+#include "test/http_parser.h"
+#include "test/slice.h"
 
 #include <assert.h>
 #include <stdarg.h>
