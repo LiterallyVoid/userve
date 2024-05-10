@@ -1,5 +1,6 @@
 OBJECTS = \
 	src/types/buffer.o	\
+	src/types/slice.o	\
 	src/types/error.o	\
 	src/http/parser.o	\
 	src/http/request.o	\
