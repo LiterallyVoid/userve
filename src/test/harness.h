@@ -4,6 +4,13 @@ typedef struct TestContext {
 	bool is_in_test;
 
 	char current_test[128];
+
+	// `false` until `EXPECT` is called during the current test.
+	// Used to not count empty tests.
+	bool current_test_is_empty;
+
+	// `false` until `EXPECT` is called with a `false` condition.
+	// Used to tally passing tests.
 	bool current_test_has_failed;
 
 	int total_tests;

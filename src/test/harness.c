@@ -11,6 +11,7 @@ void test(
 	test_end(ctx);
 
 	ctx->is_in_test = true;
+	ctx->current_test_is_empty = true;
 	ctx->current_test_has_failed = false;
 
 	va_list args;
@@ -32,10 +33,12 @@ void test_end(TestContext *ctx) {
 	}
 	ctx->is_in_test = false;
 
+	if (ctx->current_test_is_empty) return;
+
 	ctx->total_tests++;
-	if (!ctx->current_test_has_failed) {
-		ctx->total_tests_passed++;
-	}
+	if (ctx->current_test_has_failed) return;
+
+	ctx->total_tests_passed++;
 }
 
 void expect(
@@ -45,6 +48,8 @@ void expect(
 	const char *file,
 	int line
 ) {
+	ctx->current_test_is_empty = false;
+
 	if (condition) return;
 
 	fprintf(
