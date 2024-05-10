@@ -1,6 +1,6 @@
 OBJECTS = \
-	src/buffer.o	\
-	src/error.o	\
+	src/types/buffer.o	\
+	src/types/error.o	\
 	src/http/parser.o	\
 	src/http/request.o	\
 	src/http/response.o	\

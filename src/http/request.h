@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../buffer.h"
+#include "../types/buffer.h"
 
 #include <sys/types.h>
 

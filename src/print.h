@@ -1,6 +1,6 @@
 #pragma once
 
-#include "buffer.h"
+#include "types/buffer.h"
 #include "http/request.h"
 
 #include <netinet/in.h>

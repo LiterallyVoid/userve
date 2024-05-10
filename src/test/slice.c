@@ -1,5 +1,5 @@
 #include "slice.h"
-#include "../buffer.h"
+#include "../types/buffer.h"
 
 void test_slice(TestContext *ctx) {
 	test(ctx, "slice");

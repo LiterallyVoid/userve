@@ -1,7 +1,7 @@
 #pragma once
 
-#include "buffer.h"
-#include "error.h"
+#include "types/buffer.h"
+#include "types/error.h"
 
 #include <netinet/in.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
 #include "buffer.h"
-#include "../buffer.h"
+#include "../types/buffer.h"
 
 #include <string.h>
 
