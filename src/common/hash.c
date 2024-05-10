@@ -30,7 +30,7 @@
 //
 // 
 // I hope I copied the right constants from Wikipedia.
-uint32_t hash(Slice slice) {
+uint32_t hash_fnv1a32(Slice slice) {
 	uint32_t hash = 0x811C9DC5u;
 
 	for (size_t i = 0; i < slice.len; i++) {

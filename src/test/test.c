@@ -17,7 +17,7 @@
 static void test_hash(TestContext *ctx) {
 	test(ctx, "hash");
 
-	EXPECT(ctx, hash(slice_from_cstr("a")) != hash(slice_from_cstr("b")));
+	EXPECT(ctx, hash_fnv1a32(slice_from_cstr("a")) != hash_fnv1a32(slice_from_cstr("b")));
 }
 
 Error test_all(void) {
