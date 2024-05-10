@@ -52,6 +52,10 @@ static void print_usage(const char *argv0) {
 	fprintf(stderr, "\t\tnote: if listening on [port] fails, userve will try up to five successive ports above that port\n");
 	fprintf(stderr, "\n");
 
+	fprintf(stderr, "\t-s [path], --serve [path]\n");
+	fprintf(stderr, "\t\tserve all files in [path] (default: .)\n");
+	fprintf(stderr, "\n");
+
 	fprintf(stderr, "\t-t, --test\n");
 	fprintf(stderr, "\t\trun tests\n");
 	fprintf(stderr, "\n");
@@ -73,6 +77,8 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 	*self = (Arguments) {
 		.address = "localhost",
 		.port = "3000",
+
+		.serve_path = ".",
 
 		.test = false,
 		.fuzz = NULL,
@@ -112,6 +118,21 @@ void arguments_parse(Arguments *self, int argc, const char **argv) {
 		// --port=[port]
 		} else if ((parsed = remove_prefix("--port=", arg)) != NULL) {
 			self->port = parsed;
+
+		// --serve [path], -s [path]
+		} else if (match(arg, "-s") || match(arg, "--serve")) {
+			i++;
+			if (i >= argc) {
+				fprintf(stderr, "error: expected path after %s\n\n", arg);
+				print_usage(argv[0]);
+				exit(1);
+			}
+
+			self->serve_path = argv[i];
+
+		// --serve=[path]
+		} else if ((parsed = remove_prefix("--serve=", arg)) != NULL) {
+			self->serve_path = parsed;
 
 		} else if (match(arg, "-t") || match(arg, "--test")) {
 			self->test = true;

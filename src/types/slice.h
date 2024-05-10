@@ -29,6 +29,10 @@ Slice slice_remove_start(Slice self, size_t n);
 // Panics if that slice would be out-of-bounds.
 Slice slice_keep_bytes_from_end(Slice self, size_t n);
 
+// If `mut_slice` ends with `suffix`, change the slice so it no longer contains
+// the suffix and return `true`. Otherwise, return `false.`
+bool slice_remove_suffix(Slice *mut_slice, Slice suffix);
+
 // ### Allocated slice
 
 typedef Slice OwnedSlice;

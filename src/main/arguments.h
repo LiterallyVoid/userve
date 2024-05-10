@@ -8,6 +8,8 @@ typedef struct Arguments {
 	const char *address;
 	const char *port;
 
+	const char *serve_path;
+
 	bool test;
 	const char *fuzz;
 } Arguments;

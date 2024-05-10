@@ -48,6 +48,22 @@ Slice slice_keep_bytes_from_end(Slice self, size_t n) {
 	);
 }
 
+bool slice_remove_suffix(Slice *mut_slice, Slice suffix) {
+	if (mut_slice->len <= suffix.len) return false;
+
+	if (memcmp(
+		mut_slice->bytes + mut_slice->len - suffix.len,
+		suffix.bytes,
+		suffix.len
+	) != 0) {
+		return false;
+	}
+
+	mut_slice->len -= suffix.len;
+
+	return true;
+}
+
 OwnedSlice slice_clone(Slice slice) {
 	// @TODO: error handling?
 	uint8_t *bytes = malloc(slice.len);

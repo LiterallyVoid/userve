@@ -52,5 +52,9 @@ Error buffer_concat_printf(Buffer *self, const char *fmt, ...);
 // Return a slice to the buffer's content, i.e. `self.buffer[0..self.len]`
 Slice buffer_slice(Buffer *self);
 
+// Return a slice to the buffer's content, and move ownership of the string from
+// `self`. The caller not call `buffer_deinit` on `self`.
+OwnedSlice buffer_to_owned(Buffer *self);
+
 // Return a slice to the uninitialized portion of this buffer.
 Slice buffer_uninitialized(Buffer *self);

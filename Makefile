@@ -37,4 +37,6 @@ LDFLAGS =
 
 WARNINGS = -Wall -Wextra -Wmissing-prototypes -Wvla
 
+EXE = userve
+
 include deps/c-build/build.mk

@@ -120,6 +120,13 @@ Slice buffer_slice(Buffer *self) {
 	);
 }
 
+OwnedSlice buffer_to_owned(Buffer *self) {
+	return slice_from_len(
+		self->bytes,
+		self->len
+	);
+}
+
 Slice buffer_uninitialized(Buffer *self) {
 	if (self->bytes == NULL || self->cap == 0) {
 		// It's undefined behavior to offset a NULL pointer.
