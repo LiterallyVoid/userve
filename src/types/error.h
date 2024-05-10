@@ -9,6 +9,7 @@ typedef enum Error {
 	ERR_NO_SPACE = -3,
 
 	ERR_PARSE_FAILED = -100,
+	ERR_NOT_FOUND = -101,
 
 } Error;
 
