@@ -2,9 +2,13 @@
 #include "test/harness.h"
 
 #include "test/arguments.h"
+
 #include "test/buffer.h"
 #include "test/slice.h"
+
+#include "test/arraylist.h"
 #include "test/hashmap.h"
+
 #include "test/http_parser.h"
 
 #include <assert.h>
@@ -34,6 +38,9 @@ Error test_all(void) {
 
 	printf("test slice\n");
 	test_slice(&ctx);
+
+	printf("test arraylist\n");
+	test_arraylist(&ctx);
 
 	printf("test hashmap\n");
 	test_hashmap(&ctx);

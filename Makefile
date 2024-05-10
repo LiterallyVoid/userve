@@ -21,6 +21,7 @@ OBJECTS += \
 	src/test/arguments.o	\
 	src/test/buffer.o	\
 	src/test/slice.o	\
+	src/test/arraylist.o	\
 	src/test/hashmap.o	\
 	src/test/http_parser.o
 
