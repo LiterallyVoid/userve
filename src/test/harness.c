@@ -1,4 +1,5 @@
 #include "test/harness.h"
+#include "util.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,16 +11,16 @@ void test(
 ) {
 	test_end(ctx);
 
-	ctx->is_in_test = true;
-	ctx->current_test_is_empty = true;
-	ctx->current_test_has_failed = false;
+	set_undefined(&ctx->current_test, sizeof(ctx->current_test));
+	ctx->current_test.expectations = 0;
+	ctx->current_test.expectations_passed = 0;
 
 	va_list args;
 	va_start(args, fmt);
 
 	vsnprintf(
-		ctx->current_test,
-		sizeof(ctx->current_test),
+		ctx->current_test.name,
+		sizeof(ctx->current_test.name),
 		fmt,
 		args
 	);
@@ -31,12 +32,17 @@ void test_end(TestContext *ctx) {
 	if (!ctx->is_in_test) {
 		return;
 	}
+
 	ctx->is_in_test = false;
 
-	if (ctx->current_test_is_empty) return;
+	if (ctx->current_test.expectations == 0) {
+		return;
+	}
 
 	ctx->total_tests++;
-	if (ctx->current_test_has_failed) return;
+	if (ctx->current_test.expectations_passed < ctx->current_test.expectations) {
+		return;
+	}
 
 	ctx->total_tests_passed++;
 }
@@ -48,21 +54,21 @@ void expect(
 	const char *file,
 	int line
 ) {
-	ctx->current_test_is_empty = false;
-
-	if (condition) return;
+	ctx->current_test.expectations++;
+	if (condition) {
+		ctx->current_test.expectations_passed++;
+		return;
+	}
 
 	fprintf(
 		stderr,
 		"test %s\t(%s:%d)\tassertion failed:\t%s\n",
-		ctx->current_test,
+		ctx->current_test.name,
 
 		file,
 		line,
 
 		condition_code
 	);
-
-	ctx->current_test_has_failed = true;
 }
 
