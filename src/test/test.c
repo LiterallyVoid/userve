@@ -3,8 +3,9 @@
 
 #include "test/arguments.h"
 #include "test/buffer.h"
-#include "test/http_parser.h"
 #include "test/slice.h"
+#include "test/hashmap.h"
+#include "test/http_parser.h"
 
 #include <assert.h>
 #include <stdarg.h>
@@ -22,6 +23,9 @@ Error test_all(void) {
 
 	printf("test slice\n");
 	test_slice(&ctx);
+
+	printf("test hashmap\n");
+	test_hashmap(&ctx);
 
 	printf("test http parser\n");
 	test_http_parser(&ctx);

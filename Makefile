@@ -1,6 +1,7 @@
 OBJECTS = \
 	src/types/buffer.o	\
 	src/types/slice.o	\
+	src/types/hashmap.o	\
 	src/types/error.o	\
 	src/http/parser.o	\
 	src/http/request.o	\
@@ -17,8 +18,9 @@ OBJECTS += \
 	src/test/test.o	\
 	src/test/arguments.o	\
 	src/test/buffer.o	\
-	src/test/http_parser.o	\
-	src/test/slice.o
+	src/test/slice.o	\
+	src/test/hashmap.o	\
+	src/test/http_parser.o
 
 CFLAGS = \
 	-ftrivial-auto-var-init=pattern	\
