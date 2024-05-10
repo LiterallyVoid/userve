@@ -2,6 +2,7 @@ OBJECTS = \
 	src/common/hash.o	\
 	src/types/buffer.o	\
 	src/types/slice.o	\
+	src/types/arraylist.o	\
 	src/types/hashmap.o	\
 	src/types/error.o	\
 	src/http/parser.o	\
