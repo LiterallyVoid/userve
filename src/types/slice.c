@@ -23,6 +23,9 @@ Slice slice_from_cstr(const char *cstr) {
 }
 
 bool slice_equal(Slice a, Slice b) {
+	// If both strings are empty, don't look at their bytes.
+	if (a.len == 0 && b.len == 0) return true;
+
 	if (a.len != b.len) return false;
 	if (memcmp(a.bytes, b.bytes, a.len) != 0) return false;
 
