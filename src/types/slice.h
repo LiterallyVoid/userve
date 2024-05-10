@@ -29,3 +29,10 @@ Slice slice_remove_start(Slice self, size_t n);
 // Panics if that slice would be out-of-bounds.
 Slice slice_keep_bytes_from_end(Slice self, size_t n);
 
+// ### Allocated slice
+
+typedef Slice OwnedSlice;
+
+OwnedSlice slice_clone(Slice slice);
+OwnedSlice slice_concat(Slice a, Slice b);
+void slice_free(OwnedSlice slice);

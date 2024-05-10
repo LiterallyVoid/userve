@@ -48,4 +48,27 @@ Slice slice_keep_bytes_from_end(Slice self, size_t n) {
 	);
 }
 
+OwnedSlice slice_clone(Slice slice) {
+	// @TODO: error handling?
+	uint8_t *bytes = malloc(slice.len);
+	assert(bytes != NULL);
 
+	memcpy(bytes, slice.bytes, slice.len);
+
+	return slice_from_len(bytes, slice.len);
+}
+
+OwnedSlice slice_concat(Slice a, Slice b) {
+	// @TODO: error handling?
+	uint8_t *bytes = malloc(a.len + b.len);
+	assert(bytes != NULL);
+
+	memcpy(bytes, a.bytes, a.len);
+	memcpy(bytes + a.len, b.bytes, b.len);
+
+	return slice_from_len(bytes, a.len + b.len);
+}
+
+void slice_free(OwnedSlice slice) {
+	free(slice.bytes);
+}
