@@ -1,6 +1,6 @@
 #include "server.h"
 
-#include "util.h"
+#include "../util.h"
 
 #include <assert.h>
 #include <poll.h>

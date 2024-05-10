@@ -8,7 +8,7 @@ OBJECTS = \
 	src/http/response.o	\
 	src/main.o	\
 	src/print.o	\
-	src/server.o \
+	src/net/server.o \
 	src/util.o \
 	# end
 

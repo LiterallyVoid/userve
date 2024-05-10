@@ -1,8 +1,8 @@
 #include "arguments.h"
 #include "http/parser.h"
 #include "http/response.h"
+#include "net/server.h"
 #include "print.h"
-#include "server.h"
 #include "util.h"
 
 #include "test/test.h"
