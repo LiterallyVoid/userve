@@ -26,6 +26,8 @@ void test(
 	);
 
 	va_end(args);
+
+	ctx->is_in_test = true;
 }
 
 void test_end(TestContext *ctx) {
