@@ -232,6 +232,10 @@ void test_http_parser(TestContext *ctx) {
 			break;
 		}
 
+		if (err == ERR_SUCCESS && result.done) {
+			http_request_deinit(&result.request);
+		}
+
 		http_parser_deinit(&parser);
 	}
 
@@ -284,6 +288,10 @@ void test_http_parser(TestContext *ctx) {
 			EXPECT(ctx, err == ERR_PARSE_FAILED);
 			EXPECT(ctx, cases[i].trailing == NULL);
 			break;
+		}
+
+		if (err == ERR_SUCCESS && result.done) {
+			http_request_deinit(&result.request);
 		}
 
 		http_parser_deinit(&parser);
