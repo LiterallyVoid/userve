@@ -1,6 +1,5 @@
 OBJECTS = \
 	src/arguments.o \
-	src/arraylist.o	\
 	src/buffer.o	\
 	src/error.o	\
 	src/http/parser.o	\
