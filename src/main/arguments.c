@@ -57,7 +57,7 @@ static void print_usage(const char *argv0) {
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "\t-f [system], --fuzz [system]\n");
-	fprintf(stderr, "\t\tentrypoint for fuzzing [system] (very very wip)\n");
+	fprintf(stderr, "\t\tentrypoint for fuzzing [system] (so WIP it's literally one line of code)\n");
 	fprintf(stderr, "\n");
 
 	fprintf(stderr, "\t-h, --help, -?\n");
