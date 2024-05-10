@@ -57,3 +57,11 @@ HashMapEntry hashmap_get(HashMap *self, Slice key);
 // The key isn't written to the hashmap, because I want to make it clear that
 // callsites are responsible for knowing whether or not this hashmap owns its keys.
 Error hashmap_put(HashMap *self, Slice key, HashMapEntry *out_entry);
+
+typedef struct {
+	size_t index;
+} HashMapIterator;
+
+// To iterate over a hashmap, create a zero-initialized HashMapIterator and call
+// `hashmap_next` until it returns an entry with `occupied` set to `false`.
+HashMapEntry hashmap_next(HashMap *self, HashMapIterator *it);
