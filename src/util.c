@@ -45,7 +45,10 @@ Error write_all_to_fd(int fd, Slice slice) {
 		if (attempt_write > INT_MAX) attempt_write = INT_MAX;
 
 		ssize_t amount_written = write(fd, slice.bytes, attempt_write);
-		if (amount_written < 0) return ERR_UNKNOWN;
+		if (amount_written < 0) {
+			perror("write");
+			return ERR_UNKNOWN;
+		}
 
 		slice = slice_remove_start(slice, amount_written);
 	}

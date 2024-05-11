@@ -179,7 +179,7 @@ int main(int argc, const char **argv) {
 			if (err == ERR_HTTP_NOT_FOUND) {
 				(void) http_response_not_found(&response);
 			} else if (err != ERR_SUCCESS) {
-				printf("error serving from staticfileserver: %s\n", error_to_string(err));
+				printf("error serving from file server: %s\n", error_to_string(err));
 
 				(void) http_response_internal_server_error(&response);
 			}

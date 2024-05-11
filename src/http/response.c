@@ -49,6 +49,8 @@ void http_response_deinit(HttpResponse *self) {
 }
 
 Error http_response_not_found(HttpResponse *self) {
+	if (self->state != HTTP_RESPONSE_STATE_HEADERS) return ERR_SUCCESS;
+
 	Error err;
 
 	buffer_clear(&self->headers);
@@ -61,6 +63,8 @@ Error http_response_not_found(HttpResponse *self) {
 }
 
 Error http_response_internal_server_error(HttpResponse *self) {
+	if (self->state != HTTP_RESPONSE_STATE_HEADERS) return ERR_SUCCESS;
+
 	Error err;
 
 	buffer_clear(&self->headers);
