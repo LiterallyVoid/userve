@@ -166,13 +166,13 @@ Error fileserver_register_directory(
 		struct stat entry_stat;
 		stat(entry_path_cstr, &entry_stat);
 
-		if (entry_stat.st_mode & S_IFDIR) {
+		if (S_ISDIR(entry_stat.st_mode)) {
 			fileserver_register_directory(
 				self,
 				entry_path_cstr,
 				buffer_slice(&entry_url)
 			);
-		} else if (entry_stat.st_mode & S_IFREG) {
+		} else if (S_ISREG(entry_stat.st_mode)) {
 			fileserver_load_file(
 				self,
 				entry_path_cstr,
