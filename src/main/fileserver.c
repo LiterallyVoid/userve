@@ -1,7 +1,9 @@
 #include "main/fileserver.h"
 
-#include "types/buffer.h"
 #include "util.h"
+
+#include "warble/buffer.h"
+#include "warble/util.h"
 
 #include <assert.h>
 #include <dirent.h>

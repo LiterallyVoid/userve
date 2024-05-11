@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/buffer.h"
+#include "warble/buffer.h"
 #include "http/request.h"
 
 #include <netinet/in.h>

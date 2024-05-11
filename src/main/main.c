@@ -5,11 +5,11 @@
 #include "net/server.h"
 #include "print.h"
 #include "test/test.h"
-#include "types/buffer.h"
-#include "types/error.h"
-#include "types/slice.h"
-#include "util.h"
-#include "types/hashmap.h"
+#include "warble/buffer.h"
+#include "warble/error.h"
+#include "warble/slice.h"
+#include "warble/util.h"
+#include "warble/hashmap.h"
 
 #include <assert.h>
 #include <stddef.h>

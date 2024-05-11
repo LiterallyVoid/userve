@@ -1,12 +1,6 @@
 VERSION = v0.2.0
 
 OBJECTS = \
-	src/common/hash.o	\
-	src/types/buffer.o	\
-	src/types/slice.o	\
-	src/types/arraylist.o	\
-	src/types/hashmap.o	\
-	src/types/error.o	\
 	src/http/parser.o	\
 	src/http/request.o	\
 	src/http/response.o	\
@@ -19,14 +13,20 @@ OBJECTS = \
 	# end
 
 OBJECTS += \
-	src/test/harness.o	\
 	src/test/test.o	\
 	src/test/arguments.o	\
-	src/test/buffer.o	\
-	src/test/slice.o	\
-	src/test/arraylist.o	\
-	src/test/hashmap.o	\
 	src/test/http_parser.o
+
+OBJECTS += \
+	deps/warble/src/arraylist.o	\
+	deps/warble/src/buffer.o	\
+	deps/warble/src/error.o	\
+	deps/warble/src/hash.o	\
+	deps/warble/src/hashmap.o	\
+	deps/warble/src/slice.o	\
+	deps/warble/src/test.o	\
+	deps/warble/src/util.o	\
+	# end
 
 CFLAGS = \
 	-ftrivial-auto-var-init=pattern	\
@@ -34,7 +34,7 @@ CFLAGS = \
 	-DUSERVE_VERSION=\"$(VERSION)\" \
 	-D_POSIX_C_SOURCE=200112L
 
-INCLUDES = -Isrc/
+INCLUDES = -Isrc/ -Ideps/warble/include/
 
 LDFLAGS =
 

@@ -2,8 +2,8 @@
 
 #include "http/request.h"
 #include "http/response.h"
-#include "types/hashmap.h"
-#include "types/slice.h"
+#include "warble/hashmap.h"
+#include "warble/slice.h"
 
 typedef struct StaticFile {
 	// Static memory.

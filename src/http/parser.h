@@ -1,7 +1,7 @@
 #pragma once
 
 #include "http/request.h"
-#include "types/buffer.h"
+#include "warble/buffer.h"
 
 typedef struct HttpParser {
 	Buffer buffer;

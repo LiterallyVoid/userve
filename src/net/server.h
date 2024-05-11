@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types/error.h"
+#include "warble/error.h"
 
 #include <netinet/in.h>
 

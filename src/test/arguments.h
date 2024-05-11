@@ -1,5 +1,5 @@
 #pragma once
 
-#include "test/harness.h"
+#include "warble/test.h"
 
 void test_arguments(TestContext *ctx);

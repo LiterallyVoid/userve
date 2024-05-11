@@ -1,9 +1,10 @@
 #include "net/server.h"
 
-#include "util.h"
+#include "warble/util.h"
 
 #include <assert.h>
 #include <poll.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

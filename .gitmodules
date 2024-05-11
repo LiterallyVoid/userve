@@ -1,3 +1,6 @@
 [submodule "deps/c-build"]
 	path = deps/c-build
 	url = https://github.com/LiterallyVoid/c-build.git
+[submodule "deps/warble"]
+	path = deps/warble
+	url = https://github.com/LiterallyVoid/warble.git

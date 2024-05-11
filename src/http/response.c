@@ -1,6 +1,7 @@
 #include "http/response.h"
 
 #include "util.h"
+#include "warble/util.h"
 
 #include <assert.h>
 
