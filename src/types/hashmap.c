@@ -229,7 +229,11 @@ Error hashmap_reserve_additional(HashMap *self, size_t additional) {
 
 		HashMapEntry old_entry = hashmap_construct_entry(&prev, slot, true);
 
-		HashMapEntry new_entry = hashmap_get_or_put_assume_capacity(self, *old_entry.key_ptr, true);
+		HashMapEntry new_entry = hashmap_get_or_put_assume_capacity(
+			self,
+			*old_entry.key_ptr,
+			true
+		);
 		assert(!new_entry.occupied);
 
 		*new_entry.hash_ptr = *old_entry.hash_ptr;
@@ -237,6 +241,10 @@ Error hashmap_reserve_additional(HashMap *self, size_t additional) {
 
 		memcpy(new_entry.value_ptr, old_entry.value_ptr, self->value_size);
 	}
+
+	free(prev.hashes);
+	free(prev.keys);
+	free(prev.values);
 
 	return ERR_SUCCESS;
 }

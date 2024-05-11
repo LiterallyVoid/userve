@@ -108,6 +108,8 @@ int main(int argc, const char **argv) {
 		}
 	}
 
+	freeaddrinfo(listen_addresses);
+
 	FileServer sfs;
 	fileserver_init(&sfs);
 
@@ -196,4 +198,5 @@ int main(int argc, const char **argv) {
 	}
 
 	fileserver_deinit(&sfs);
+	server_deinit(&server);
 }
