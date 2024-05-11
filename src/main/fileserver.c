@@ -23,7 +23,6 @@ void fileserver_deinit(FileServer *self) {
 		slice_free(*entry.key_ptr);
 
 		StaticFile *file = (StaticFile*) entry.value_ptr;
-		slice_free(file->content_type);
 		slice_free(file->contents);
 	}
 
