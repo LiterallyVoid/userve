@@ -110,11 +110,11 @@ int main(int argc, const char **argv) {
 
 	freeaddrinfo(listen_addresses);
 
-	FileServer sfs;
-	fileserver_init(&sfs);
+	FileServer fileserver;
+	fileserver_init(&fileserver);
 
 	{
-		Error err = fileserver_register_directory(&sfs, arguments.serve_path, slice_from_cstr("/"));
+		Error err = fileserver_register_directory(&fileserver, arguments.serve_path, slice_from_cstr("/"));
 		if (err != ERR_SUCCESS) {
 			printf("error loading static files from directory: %s\n", error_to_string(err));
 		}
@@ -133,11 +133,12 @@ int main(int argc, const char **argv) {
 		HttpParser parser;
 		http_parser_init(&parser);
 
-		bool request_found = false;
+		bool request_parsed = false;
 		HttpRequest request;
 		set_undefined(&request, sizeof(request));
 
 		while (true) {
+			// Read 512 bytes at a time.
 			uint8_t buffer[512];
 
 			ssize_t recv_result = recv(connection.fd, &buffer, sizeof(buffer), 0);
@@ -145,7 +146,9 @@ int main(int argc, const char **argv) {
 				perror("read");
 				break;
 			}
+
 			if (recv_result == 0) {
+				// End of file?
 				break;
 			}
 
@@ -154,6 +157,7 @@ int main(int argc, const char **argv) {
 			size_t buffer_len = recv_result;
 			assert(buffer_len <= sizeof(buffer));
 
+			// Poll the parser with these bytes.
 			HttpParserPollResult result;
 			Error err = http_parser_poll(&parser, slice_from_len(buffer, buffer_len), &result);
 			if (err != ERR_SUCCESS) {
@@ -161,20 +165,23 @@ int main(int argc, const char **argv) {
 				break;
 			}
 
-			if (result.done) {
-				request_found = true;
-				request = result.request;
-				break;
+			if (!result.done) {
+				continue;
 			}
+
+			// We've parsed one request.
+			request_parsed = true;
+			request = result.request;
+			break;
 		}
 
-		if (request_found) {
+		if (request_parsed) {
 			print_http_request(stdout, &request);
 
 			HttpResponse response;
 			http_response_init(&response, &request, connection.fd);
 
-			err = fileserver_respond(&sfs, &request, &response);
+			err = fileserver_respond(&fileserver, &request, &response);
 
 			if (err == ERR_HTTP_NOT_FOUND) {
 				(void) http_response_not_found(&response);
@@ -192,6 +199,6 @@ int main(int argc, const char **argv) {
 		server_connection_deinit(&connection);
 	}
 
-	fileserver_deinit(&sfs);
+	fileserver_deinit(&fileserver);
 	server_deinit(&server);
 }
