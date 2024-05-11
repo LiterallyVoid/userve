@@ -9,6 +9,7 @@ OBJECTS = \
 	src/http/request.o	\
 	src/http/response.o	\
 	src/main/arguments.o	\
+	src/main/fileserver.o	\
 	src/main/main.o	\
 	src/print.o	\
 	src/net/server.o	\
