@@ -177,7 +177,7 @@ int main(int argc, const char **argv) {
 			print_http_request(stdout, &request);
 
 			HttpResponse response;
-			http_response_init(&response, connection.fd);
+			http_response_init(&response, &request, connection.fd);
 
 			err = fileserver_respond(&sfs, &request, &response);
 

@@ -15,7 +15,7 @@ const char *http_status_to_string(HttpStatus status) {
 	return "";
 }
 
-void http_response_init(HttpResponse *self, int write_fd) {
+void http_response_init(HttpResponse *self, HttpRequest *req, int write_fd) {
 	set_undefined(self, sizeof(*self));
 
 	self->write_fd = write_fd;
@@ -24,6 +24,8 @@ void http_response_init(HttpResponse *self, int write_fd) {
 
 	self->status = HTTP_INTERNAL_SERVER_ERROR;
 	buffer_init(&self->headers);
+
+	self->was_head_request = slice_equal(req->method, slice_from_cstr("HEAD"));
 }
 
 void http_response_deinit(HttpResponse *self) {
@@ -169,6 +171,8 @@ Error http_response_end_with_body(HttpResponse *self, Slice body) {
 	// Don't send headers twice, even if there's an error while sending headers.
 	self->state = HTTP_RESPONSE_STATE_DONE;
 	if (err != ERR_SUCCESS) return err;
+
+	if (self->was_head_request) return ERR_SUCCESS;
 
 	err = write_all_to_fd(self->write_fd, body);
 	if (err != ERR_SUCCESS) return err;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "http/request.h"
 #include "types/buffer.h"
 
 // Long ago, the four nations lived in harmony.
@@ -37,10 +38,14 @@ typedef struct {
 
 	int status;
 	Buffer headers;
+
+	// `true` if the request was a `HEAD` request, and no body should be sent back.
+	bool was_head_request;
 } HttpResponse;
 
 // Initialize `self`, in preparation for writing an HTTP response to `write_fd`.
-void http_response_init(HttpResponse *self, int write_fd);
+// `request` is used to to check if the request is a HEAD method.
+void http_response_init(HttpResponse *self, HttpRequest *request, int write_fd);
 
 // If headers haven't been sent yet, send 500 Internal Server Error in response.
 void http_response_deinit(HttpResponse *self);
@@ -62,6 +67,8 @@ void http_response_clear_headers(HttpResponse *self);
 // Not written immediately.
 Error http_response_add_header(HttpResponse *self, Slice name, Slice value);
 
-Error http_response_write_chunk(HttpResponse *self, Slice slice);
 Error http_response_end_with_body(HttpResponse *self, Slice slice);
-Error http_response_end(HttpResponse *self);
+
+// Not implemented.
+//Error http_response_write_chunk(HttpResponse *self, Slice slice);
+//Error http_response_end(HttpResponse *self);
