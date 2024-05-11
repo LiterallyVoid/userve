@@ -130,10 +130,6 @@ int main(int argc, const char **argv) {
 			continue;
 		}
 
-		printf("Got connection from ");
-		print_address(stdout, connection.client_addr, connection.client_addr_len);
-		printf("!\n");
-
 		HttpParser parser;
 		http_parser_init(&parser);
 
@@ -173,7 +169,6 @@ int main(int argc, const char **argv) {
 		}
 
 		if (request_found) {
-			printf("got HTTP request:\n");
 			print_http_request(stdout, &request);
 
 			HttpResponse response;
