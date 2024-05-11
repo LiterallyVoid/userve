@@ -1,15 +1,11 @@
 #include "test/test.h"
 
 #include "test/arguments.h"
-
 #include "test/http_parser.h"
 
 #include "warble/test.h"
 
-#include <assert.h>
-#include <stdarg.h>
 #include <stdio.h>
-#include <string.h>
 
 Error test_all(void) {
 	TestContext ctx;
@@ -23,4 +19,6 @@ Error test_all(void) {
 	test_http_parser(&ctx);
 
 	test_context_report(&ctx);
+
+	return ERR_SUCCESS;
 }
