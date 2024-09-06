@@ -36,6 +36,7 @@ Slice detect_content_type(Slice path) {
 		{ slice_from_cstr(".html"), slice_from_cstr("text/html; charset=utf-8") },
 		{ slice_from_cstr(".css"), slice_from_cstr("text/css; charset=utf-8") },
 		{ slice_from_cstr(".js"), slice_from_cstr("text/javascript; charset=utf-8") },
+		{ slice_from_cstr(".wasm"), slice_from_cstr("application/wasm") },
 
 		// Documents?
 		{ slice_from_cstr(".md"), slice_from_cstr("text/markdown; charset=utf-8") },
